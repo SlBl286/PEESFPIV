@@ -1,0 +1,21 @@
+@namespace PEESFPIV.Frontend.Components.Components
+@rendermode InteractiveServer
+<div class="flex mx-2">
+  <div class=" mr-1 @GetSelectedStyle(EN) hover:cursor-pointer" @onclick="()=>ChangeValue(EN)">EN </div>
+   / 
+  <div class=" ml-1 @GetSelectedStyle(VN) hover:cursor-pointer " @onclick="()=>ChangeValue(VN)">VN</div>
+</div>
+
+@code{
+      const string EN = "EN";
+      const string VN = "VN";
+
+    private string _value = VN;
+    private void ChangeValue(string value){
+      _value = value;
+    }
+    private string GetSelectedStyle(string value){
+      return value == _value ? "font-bold": "font-light";
+    }
+
+}
