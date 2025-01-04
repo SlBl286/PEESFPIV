@@ -1,0 +1,71 @@
+@page "/CMS/auth/login"
+@using PEESFPIV.Frontend.Components.Layout;
+@using PEESFPIV.Frontend.Components.Components.UI;
+@using PEESFPIV.Frontend.Models;
+@using System.ComponentModel.DataAnnotations
+@using PEESFPIV.Frontend.Models.Auth
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@layout CMSLayout
+
+<PageTitle>Login</PageTitle>
+
+<div class="flex w-screen h-screen items-center  justify-center">
+    <Card>
+        <EditForm Model="Model" class="flex flex-col gap-y-4" method="Post" OnInvalidSubmit="LoginUserAsync"
+            FormName="@LoginForm">
+            <div class="">
+                <label>Username</label>
+                <InputText @bind-Value="Model.Username" class="" />
+                <ValidationMessage For="()=>Model.Username" />
+            </div>
+            <div class="">
+                <label>Password</label>
+                <InputText type="password" @bind-Value="Model.Password" class="" />
+                <ValidationMessage For="()=>Model.Password" />
+            </div>
+            <div>
+                <button type="submit">Login</button>
+            </div>
+        </EditForm>
+    </Card>
+</div>
+
+
+@code {
+    private const string LoginForm = "login-form";
+    [SupplyParameterFromForm(FormName = LoginForm)]
+    private LoginModel Model { get; set; } = new();
+
+    [CascadingParameter]
+    public HttpContext HttpContext {get;set;} = default!;
+    private async Task LoginUserAsync()
+    {
+        await Task.Delay(2000);
+
+        LoggedInUserModel user = new LoggedInUserModel(Guid.NewGuid(),"qy286","Duy Quý");
+        var claims = user.ToClaims();
+        var identity = new ClaimsIdentity(claims, "PEESFPIV-AUTH");
+         var principal = new ClaimsPrincipal(identity);
+         var authProps =new AuthenticationProperties
+         {
+            IsPersistent = Model.RememberMe
+         };
+        await HttpContext.SignInAsync("PEESFPIV-AUTH",principal,authProps);
+
+    }
+    class LoginModel
+    {
+        [Required]
+        public string Username { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+
+        public string Password { get; set; } = "";
+         [Required]
+        public bool RememberMe { get; set; } = false;
+
+
+    }
+}

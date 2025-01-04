@@ -1,5 +1,7 @@
 @namespace PEESFPIV.Frontend.Components.Components
 @rendermode InteractiveServer
+
+@inject NavigationManager Nag
 <div class="flex mx-2">
   <div class=" mr-1 @GetSelectedStyle(EN) hover:cursor-pointer" @onclick="()=>ChangeValue(EN)">EN </div>
    / 
@@ -13,9 +15,11 @@
     private string _value = VN;
     private void ChangeValue(string value){
       _value = value;
+       Nag.NavigateTo("/About");
     }
     private string GetSelectedStyle(string value){
       return value == _value ? "font-bold": "font-light";
+     
     }
 
 }

@@ -1,19 +1,29 @@
 @page "/CMS"
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization
 @using PEESFPIV.Frontend.Components.Layout;
 @using PEESFPIV.Frontend.Models;
+@using System.Security.Claims
 @layout CMSLayout
 
-<PageTitle>CMS</PageTitle>
+@attribute [Authorize]
 
-<div class="flex flex-col gap-y-4 w-full">
-    @foreach (var item in ResearchStudies)
-    {
-        <div class="text-2xl font-semibold bg-blue-300 h-[500px] w-full flex flex-col items-center justify-center">
-            @item.Name @_open
-            <button @onclick="Toggle">toggle</button>
+<PageTitle>CMS</PageTitle>
+<AuthorizeView>
+    <Authorized>
+        <h1>@context.User.Claims.FirstOrDefault(c=>c.Type == ClaimTypes.Name)?.Value</h1>
+        <div class="flex flex-col gap-y-4 w-full">
+            @foreach (var item in ResearchStudies)
+            {
+                <div class="text-2xl font-semibold bg-blue-300 h-[500px] w-full flex flex-col items-center justify-center">
+                    @item.Name @_open
+                    <button @onclick="Toggle">toggle</button>
+                </div>
+            }
         </div>
-    }
-</div>
+    </Authorized>
+</AuthorizeView>
+
 
 @code {
     private bool _open = false;
@@ -46,3 +56,17 @@ Name = "Test5"
 
 }
 
+    using Microsoft.AspNetCore.Authorization;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 6 "D:\vielina\WebsiteGioiThieu\PEESFPIV\PEESFPIV.Frontend\Components\Pages\CMS\Home.razor"
+    using System.Security.Claims;
+
+#line default
+#line hidden
+#nullable disable
+#nullable restore
+#line 8 "D:\vielina\WebsiteGioiThieu\PEESFPIV\PEESFPIV.Frontend\Components\Pages\CMS\Home.razor"

@@ -1,6 +1,6 @@
 namespace PEESFPIV.Frontend.Models;
 
-public class Outcome
+public class KeyFocus
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = "";

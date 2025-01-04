@@ -1,0 +1,48 @@
+@page "/CMS/auth/logout"
+@using PEESFPIV.Frontend.Components.Layout;
+@using PEESFPIV.Frontend.Models;
+@layout CMSLayout
+
+<PageTitle>Logout</PageTitle>
+
+<div class="flex flex-col gap-y-4 w-full">
+    @foreach (var item in ResearchStudies)
+    {
+        <div class="text-2xl font-semibold bg-blue-300 h-[500px] w-full flex flex-col items-center justify-center">
+            @item.Name @_open
+            <button @onclick="Toggle">toggle</button>
+        </div>
+    }
+</div>
+
+@code {
+    private bool _open = false;
+    private List<ResearchStudy> ResearchStudies = [
+    new(){
+Id = Guid.NewGuid(),
+Name = "Test"
+},
+new(){
+Id = Guid.NewGuid(),
+Name = "Test2"
+},
+new(){
+Id = Guid.NewGuid(),
+Name = "Test3"
+},
+new(){
+Id = Guid.NewGuid(),
+Name = "Test4"
+},
+new(){
+Id = Guid.NewGuid(),
+Name = "Test5"
+},
+];
+    private void Toggle(){
+        _open = !_open;
+          Console.WriteLine("ButtonClicked");
+    }
+
+}
+
