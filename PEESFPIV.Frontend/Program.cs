@@ -1,22 +1,24 @@
 using PEESFPIV.Frontend.Components;
+using PEESFPIV.Frontend.Constants;
+using PEESFPIV.Frontend.States;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
+builder.Services.AddStates();
 
 builder.Services.AddCascadingAuthenticationState();
-const string AuthScheme = "PEESFPIV-AUTH";
-const string AuthCoockie = "PEESFPIV-AUTH";
 
-builder.Services.AddAuthentication(AuthScheme)
-                .AddCookie(AuthScheme, options =>
+
+builder.Services.AddAuthentication(Cookies.AuthScheme)
+                .AddCookie(Cookies.AuthScheme, options =>
                 {
-                    options.Cookie.Name = AuthCoockie;
-                    options.LoginPath = "/CMS/auth/Login";
-                    options.AccessDeniedPath = "/CMS/auth/Access-Denied";
-                    options.LogoutPath = "/CMS/auth/Logout";
+                    options.Cookie.Name = Cookies.AuthCoockie;
+                    options.LoginPath = "/cms/auth/Login";
+                    options.AccessDeniedPath = "/cms/auth/Access-Denied";
+                    options.LogoutPath = "/cms/auth/Logout";
 
                     options.Cookie.HttpOnly = true;
                     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;

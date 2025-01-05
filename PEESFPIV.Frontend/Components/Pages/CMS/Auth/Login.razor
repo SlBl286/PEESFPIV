@@ -1,31 +1,44 @@
-@page "/CMS/auth/login"
+@page "/cms/auth/login"
 @using PEESFPIV.Frontend.Components.Layout;
 @using PEESFPIV.Frontend.Components.Components.UI;
+@using PEESFPIV.Frontend.Constants
 @using PEESFPIV.Frontend.Models;
 @using System.ComponentModel.DataAnnotations
 @using PEESFPIV.Frontend.Models.Auth
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authentication
-@layout CMSLayout
+@inject NavigationManager NavigationManager;
+@layout AuthLayout
 
 <PageTitle>Login</PageTitle>
 
 <div class="flex w-screen h-screen items-center  justify-center">
     <Card>
-        <EditForm Model="Model" class="flex flex-col gap-y-4" method="Post" OnInvalidSubmit="LoginUserAsync"
+         <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2x">
+                  Sign in to your account
+        </h1>
+        <EditForm Model="Model" class="flex flex-col gap-y-4 p-2" method="Post" OnValidSubmit="LoginUserAsync"
             FormName="@LoginForm">
-            <div class="">
-                <label>Username</label>
-                <InputText @bind-Value="Model.Username" class="" />
+            <div class="flex flex-col w-full">
+                <label class="block mb-2 text-md font-medium text-gray-900">Username</label>
+                <InputText @bind-Value="Model.Username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
                 <ValidationMessage For="()=>Model.Username" />
             </div>
-            <div class="">
-                <label>Password</label>
-                <InputText type="password" @bind-Value="Model.Password" class="" />
+            <div class="flex flex-col w-full">
+                <label class="block mb-2 text-md font-medium text-gray-900">Password</label>
+                <InputText type="password" @bind-Value="Model.Password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
                 <ValidationMessage For="()=>Model.Password" />
             </div>
+            <div class="flex my-1 gap-x-2">
+                @* <label>RememberMe</label> *@
+                <InputCheckbox @bind-Value="Model.RememberMe" class="" />
+                <span>
+
+                Ghi nhớ đăng nhập
+                </span>
+            </div>
             <div>
-                <button type="submit">Login</button>
+                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 rounded text-xl py-2 text-white">Login</button>
             </div>
         </EditForm>
     </Card>
@@ -38,33 +51,43 @@
     private LoginModel Model { get; set; } = new();
 
     [CascadingParameter]
-    public HttpContext HttpContext {get;set;} = default!;
+    public HttpContext HttpContext { get; set; } = default!;
+    [SupplyParameterFromQuery]
+    public string ReturnUrl { get; set; } = "/cms";
     private async Task LoginUserAsync()
     {
         await Task.Delay(2000);
 
-        LoggedInUserModel user = new LoggedInUserModel(Guid.NewGuid(),"qy286","Duy Quý");
+        LoggedInUserModel user = new LoggedInUserModel(Guid.NewGuid(), "qy286", "Duy Quý");
         var claims = user.ToClaims();
-        var identity = new ClaimsIdentity(claims, "PEESFPIV-AUTH");
-         var principal = new ClaimsPrincipal(identity);
-         var authProps =new AuthenticationProperties
-         {
-            IsPersistent = Model.RememberMe
-         };
-        await HttpContext.SignInAsync("PEESFPIV-AUTH",principal,authProps);
+        var identity = new ClaimsIdentity(claims, Cookies.AuthScheme);
+        var principal = new ClaimsPrincipal(identity);
+        var authProps = new AuthenticationProperties
+            {
+                IsPersistent = Model.RememberMe
+            };
+        await HttpContext.SignInAsync(Cookies.AuthScheme, principal, authProps);
+        NavigationManager.NavigateTo(ReturnUrl ?? "/cms");
+    }
 
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.CompletedTask;
+        if (HttpContext.User.Identity?.IsAuthenticated ?? false)  NavigationManager.NavigateTo(ReturnUrl ?? "/cms");
+        
     }
     class LoginModel
     {
-        [Required]
-        public string Username { get; set; } = "";
+        [Required(ErrorMessage ="123321")]
+        [Length(minimumLength:2,maximumLength:100,ErrorMessage="12321213")]
+        public string Username { get; set; } = null!;
 
         [Required]
         [DataType(DataType.Password)]
 
         public string Password { get; set; } = "";
-         [Required]
-        public bool RememberMe { get; set; } = false;
+        [Display(Name = "Ghi nhớ đăng nhập")]
+        public bool RememberMe { get; set; } = true;
 
 
     }

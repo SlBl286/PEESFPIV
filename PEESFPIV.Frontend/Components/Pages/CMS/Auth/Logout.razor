@@ -1,48 +1,25 @@
 @page "/CMS/auth/logout"
 @using PEESFPIV.Frontend.Components.Layout;
-@using PEESFPIV.Frontend.Models;
+@using Microsoft.AspNetCore.Authentication;
+@using PEESFPIV.Frontend.Constants;
+@inject NavigationManager NavigationManager;
 @layout CMSLayout
 
 <PageTitle>Logout</PageTitle>
 
-<div class="flex flex-col gap-y-4 w-full">
-    @foreach (var item in ResearchStudies)
-    {
-        <div class="text-2xl font-semibold bg-blue-300 h-[500px] w-full flex flex-col items-center justify-center">
-            @item.Name @_open
-            <button @onclick="Toggle">toggle</button>
-        </div>
-    }
-</div>
+
+<p>Logging out...</p>
 
 @code {
-    private bool _open = false;
-    private List<ResearchStudy> ResearchStudies = [
-    new(){
-Id = Guid.NewGuid(),
-Name = "Test"
-},
-new(){
-Id = Guid.NewGuid(),
-Name = "Test2"
-},
-new(){
-Id = Guid.NewGuid(),
-Name = "Test3"
-},
-new(){
-Id = Guid.NewGuid(),
-Name = "Test4"
-},
-new(){
-Id = Guid.NewGuid(),
-Name = "Test5"
-},
-];
-    private void Toggle(){
-        _open = !_open;
-          Console.WriteLine("ButtonClicked");
-    }
+    [CascadingParameter]
+    public HttpContext HttpContext {get;set;} = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await HttpContext.SignOutAsync(Cookies.AuthScheme);
+        NavigationManager.NavigateTo("/cms/auth/login",replace: true);
+    } 
 
 }
 
+    

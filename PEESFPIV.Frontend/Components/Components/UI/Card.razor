@@ -1,4 +1,4 @@
-<div class="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow ">
+<div class="max-w-xl  w-full p-6 bg-white border border-gray-200 rounded-lg shadow @Class">
     @ChildContent
 </div>
 
@@ -6,4 +6,7 @@
 @code{
     [Parameter]
     public RenderFragment ChildContent { get; set; } = null!;
+
+    [Parameter]
+    public string Class {get;set;} = "";
 }

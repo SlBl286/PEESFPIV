@@ -1,7 +1,22 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using PEESFPIV.Frontend.Components.Components.CMS
 
-<NavMenu/>
-<div class="flex w-full">
-    @Body
-</div>
-<Footer/>
+@attribute [Authorize]
+<AuthorizeView>
+
+    <Authorized>
+        <div class="flex w-full">
+            <Sidebar />
+            <div class="flex flex-col w-full">
+                <Header />
+                @Body
+            </div>
+        </div>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+
+}

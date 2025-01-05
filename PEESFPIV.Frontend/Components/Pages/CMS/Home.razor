@@ -4,69 +4,44 @@
 @using PEESFPIV.Frontend.Components.Layout;
 @using PEESFPIV.Frontend.Models;
 @using System.Security.Claims
-@layout CMSLayout
+@using PEESFPIV.Frontend.States
+@using System.Data
 
-@attribute [Authorize]
+@rendermode InteractiveServer
+@implements IDisposable
+@layout CMSLayout
+@inject SidebarState SidebarState
+
+
 
 <PageTitle>CMS</PageTitle>
-<AuthorizeView>
-    <Authorized>
-        <h1>@context.User.Claims.FirstOrDefault(c=>c.Type == ClaimTypes.Name)?.Value</h1>
-        <div class="flex flex-col gap-y-4 w-full">
-            @foreach (var item in ResearchStudies)
-            {
-                <div class="text-2xl font-semibold bg-blue-300 h-[500px] w-full flex flex-col items-center justify-center">
-                    @item.Name @_open
-                    <button @onclick="Toggle">toggle</button>
-                </div>
-            }
-        </div>
-    </Authorized>
-</AuthorizeView>
+
+<div class="flex flex-col @(sidebarIsOpen ? "ml-64": "")">
+@dataTable.
+</div>
+
 
 
 @code {
-    private bool _open = false;
-    private List<ResearchStudy> ResearchStudies = [
-    new(){
-Id = Guid.NewGuid(),
-Name = "Test"
-},
-new(){
-Id = Guid.NewGuid(),
-Name = "Test2"
-},
-new(){
-Id = Guid.NewGuid(),
-Name = "Test3"
-},
-new(){
-Id = Guid.NewGuid(),
-Name = "Test4"
-},
-new(){
-Id = Guid.NewGuid(),
-Name = "Test5"
-},
-];
-    private void Toggle(){
-        _open = !_open;
-          Console.WriteLine("ButtonClicked");
+    DataTable dataTable;
+    private bool sidebarIsOpen;
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.CompletedTask;
+        sidebarIsOpen = SidebarState.IsOpen;
+        SidebarState.OnChange += UpdateState;
+
+    }
+
+    void UpdateState()
+    {
+        sidebarIsOpen = SidebarState.IsOpen;
+        StateHasChanged();
+    }
+    public void Dispose()
+    {
+        SidebarState.OnChange -= UpdateState;
+
     }
 
 }
-
-    using Microsoft.AspNetCore.Authorization;
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line 6 "D:\vielina\WebsiteGioiThieu\PEESFPIV\PEESFPIV.Frontend\Components\Pages\CMS\Home.razor"
-    using System.Security.Claims;
-
-#line default
-#line hidden
-#nullable disable
-#nullable restore
-#line 8 "D:\vielina\WebsiteGioiThieu\PEESFPIV\PEESFPIV.Frontend\Components\Pages\CMS\Home.razor"
