@@ -1,8 +1,7 @@
 namespace PEESFPIV.Frontend.Models;
 
-public class SystemConfig
+public class SystemConfig : BaseModel
 {
-    public Guid Id { get; set; }
     public string? Name { get; set; }
     public string? Address { get; set; }
     public DateTime EventDate { get; set; }

@@ -2,43 +2,56 @@
 @using PEESFPIV.Frontend.Components.Layout;
 @using PEESFPIV.Frontend.Components.Components.UI;
 @using PEESFPIV.Frontend.Constants
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
 @using PEESFPIV.Frontend.Models;
 @using System.ComponentModel.DataAnnotations
 @using PEESFPIV.Frontend.Models.Auth
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authentication
+@using PEESFPIV.Frontend.Utils.Interfaces
+
 @inject NavigationManager NavigationManager;
+@inject IUserRepository UserRepository;
+@inject IHashString hashString;
+
 @layout AuthLayout
 
 <PageTitle>Login</PageTitle>
 
 <div class="flex w-screen h-screen items-center  justify-center">
     <Card>
-         <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2x">
-                  Sign in to your account
+        <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2x">
+            Sign in to your account
         </h1>
-        <EditForm Model="Model" class="flex flex-col gap-y-4 p-2" method="Post" OnValidSubmit="LoginUserAsync"
-            FormName="@LoginForm">
+        <EditForm Model="Model" class="flex flex-col gap-y-4 p-2" method="Post"
+        OnValidSubmit="LoginUserAsync" FormName="@LoginForm">
+            <div>
+                <DataAnnotationsValidator/>
+            </div>
             <div class="flex flex-col w-full">
                 <label class="block mb-2 text-md font-medium text-gray-900">Username</label>
-                <InputText @bind-Value="Model.Username" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-                <ValidationMessage For="()=>Model.Username" />
+                <InputText @bind-Value="Model.Username"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                <ValidationMessage For="()=>Model.Username" class=" text-red-600"/>
             </div>
             <div class="flex flex-col w-full">
                 <label class="block mb-2 text-md font-medium text-gray-900">Password</label>
-                <InputText type="password" @bind-Value="Model.Password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-                <ValidationMessage For="()=>Model.Password" />
+                <InputText type="password" @bind-Value="Model.Password"
+                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
+                <ValidationMessage For="()=>Model.Password" class=" text-red-600"/>
             </div>
             <div class="flex my-1 gap-x-2">
                 @* <label>RememberMe</label> *@
                 <InputCheckbox @bind-Value="Model.RememberMe" class="" />
                 <span>
 
-                Ghi nhớ đăng nhập
+                    Ghi nhớ đăng nhập
                 </span>
             </div>
+            <p class=" text-red-600">@ErrorMessage</p>
             <div>
-                <button type="submit" class="w-full bg-green-500 hover:bg-green-600 rounded text-xl py-2 text-white">Login</button>
+                <button type="submit"
+                class="w-full bg-green-500 hover:bg-green-600 rounded text-xl py-2 text-white">Login</button>
             </div>
         </EditForm>
     </Card>
@@ -46,7 +59,9 @@
 
 
 @code {
+    private string ErrorMessage = "";
     private const string LoginForm = "login-form";
+
     [SupplyParameterFromForm(FormName = LoginForm)]
     private LoginModel Model { get; set; } = new();
 
@@ -54,12 +69,29 @@
     public HttpContext HttpContext { get; set; } = default!;
     [SupplyParameterFromQuery]
     public string ReturnUrl { get; set; } = "/cms";
+
     private async Task LoginUserAsync()
     {
-        await Task.Delay(2000);
-
-        LoggedInUserModel user = new LoggedInUserModel(Guid.NewGuid(), "qy286", "Duy Quý");
-        var claims = user.ToClaims();
+        await Task.Delay(1000);
+        ErrorMessage ="";
+        var user = await UserRepository.GetUserByUsername(Model.Username);
+        @* if (user is null)
+        {
+            byte[] salt = [];
+            var hashedPass = hashString.HashPassword(Model.Password,out salt);
+            user = new User { Username=Model.Username,HashedPassword = hashedPass,Salt =   Convert.ToBase64String(salt),Id = Guid.NewGuid(),Name= "Admin"};
+            await UserRepository.Add(user);
+        } *@
+       if (user is null)
+        {
+            ErrorMessage = "Tài khoản Không tồn tại";
+            return;
+        }
+        if(!hashString.VerifyPassword(Model.Password,user.HashedPassword,Convert.FromBase64String(user.Salt))){
+             ErrorMessage = "Tài khoản và mật khẩu không khớp";
+            return;
+        }
+        var claims = user?.ToClaims();
         var identity = new ClaimsIdentity(claims, Cookies.AuthScheme);
         var principal = new ClaimsPrincipal(identity);
         var authProps = new AuthenticationProperties
@@ -73,18 +105,16 @@
     protected override async Task OnInitializedAsync()
     {
         await Task.CompletedTask;
-        if (HttpContext.User.Identity?.IsAuthenticated ?? false)  NavigationManager.NavigateTo(ReturnUrl ?? "/cms");
-        
+        if (HttpContext.User.Identity?.IsAuthenticated ?? false) NavigationManager.NavigateTo(ReturnUrl ?? "/cms");
     }
+
     class LoginModel
     {
-        [Required(ErrorMessage ="123321")]
-        [Length(minimumLength:2,maximumLength:100,ErrorMessage="12321213")]
+        [Required()]
         public string Username { get; set; } = null!;
 
         [Required]
         [DataType(DataType.Password)]
-
         public string Password { get; set; } = "";
         [Display(Name = "Ghi nhớ đăng nhập")]
         public bool RememberMe { get; set; } = true;

@@ -1,6 +1,8 @@
 using PEESFPIV.Frontend.Components;
 using PEESFPIV.Frontend.Constants;
+using PEESFPIV.Frontend.Databases;
 using PEESFPIV.Frontend.States;
+using PEESFPIV.Frontend.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,9 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddStates();
-
+builder.Services.AddUtils();
 builder.Services.AddCascadingAuthenticationState();
 
+builder.Services.AddDatabase(builder.Configuration);
 
 builder.Services.AddAuthentication(Cookies.AuthScheme)
                 .AddCookie(Cookies.AuthScheme, options =>

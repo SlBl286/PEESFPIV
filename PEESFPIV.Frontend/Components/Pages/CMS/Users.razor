@@ -1,4 +1,4 @@
-@page "/CMS"
+@page "/CMS/Users"
 @using Microsoft.AspNetCore.Authorization;
 @using Microsoft.AspNetCore.Components.Authorization
 @using PEESFPIV.Frontend.Components.Layout;
@@ -14,7 +14,7 @@
 
 
 
-<PageTitle>CMS</PageTitle>
+<PageTitle>User Management</PageTitle>
 
 <div class="flex flex-col @(sidebarIsOpen ? "ml-64": "")">
 </div>
@@ -22,6 +22,7 @@
 
 
 @code {
+    DataTable dataTable;
     private bool sidebarIsOpen;
     protected override async Task OnInitializedAsync()
     {
