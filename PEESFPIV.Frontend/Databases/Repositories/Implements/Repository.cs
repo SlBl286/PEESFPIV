@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PEESFPIV.Frontend.Databases.Repositories.Interfaces;
 using PEESFPIV.Frontend.Models;
+using PEESFPIV.Frontend.Models.ViewModel;
 
 namespace PEESFPIV.Frontend.Databases.Repositories.Implements;
 
@@ -62,4 +63,6 @@ public class Repository<T> : IRepository<T> where T : BaseModel
         var item = await _dbContext.Set<T>().AsNoTracking().FirstOrDefaultAsync(u => u.Id.Equals(id));
         return item;
     }
+
+   
 }

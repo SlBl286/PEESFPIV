@@ -1,5 +1,6 @@
 
 using PEESFPIV.Frontend.Models;
+using PEESFPIV.Frontend.Models.ViewModel;
 
 namespace PEESFPIV.Frontend.Databases.Repositories.Interfaces;
 

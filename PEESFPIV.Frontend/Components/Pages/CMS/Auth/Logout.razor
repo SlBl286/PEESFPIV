@@ -1,9 +1,9 @@
-@page "/CMS/auth/logout"
+@page "/cms/auth/logout"
 @using PEESFPIV.Frontend.Components.Layout;
 @using Microsoft.AspNetCore.Authentication;
 @using PEESFPIV.Frontend.Constants;
 @inject NavigationManager NavigationManager;
-@layout CMSLayout
+@layout AuthLayout
 
 <PageTitle>Logout</PageTitle>
 
@@ -16,8 +16,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await HttpContext.SignOutAsync(Cookies.AuthScheme);
-        NavigationManager.NavigateTo("/cms/auth/login",replace: true);
+        if(HttpContext is not null){
+            await HttpContext.SignOutAsync(Cookies.AuthScheme);
+            NavigationManager.NavigateTo("/cms/auth/login",replace: true);
+        }
+        else NavigationManager.Refresh(true);
+        await base.OnInitializedAsync();
     } 
 
 }

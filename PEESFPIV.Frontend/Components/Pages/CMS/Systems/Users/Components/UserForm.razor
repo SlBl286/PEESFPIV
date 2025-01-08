@@ -1,0 +1,147 @@
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
+@using PEESFPIV.Frontend.Models.Auth
+@using PEESFPIV.Frontend.Utils.Interfaces
+@using System.ComponentModel.DataAnnotations
+
+@inject IUserRepository _userRepository;
+@inject IHashString _hashString;
+
+<EditForm Model="Model" method="Post" OnValidSubmit="CreateOrUpdateAsync" FormName="@userForm" class="row gy-2"
+    enctype="multipart/form-data">
+    <DataAnnotationsValidator />
+    <div class="col-6">
+        <label class="form-label">Ảnh đại diện</label>
+        <InputFile OnChange="UploadFile" class="form-control" />
+    </div>
+    <div class="col-6">
+
+    </div>
+    <div class="col-12">
+        <label class="form-label">Tên tài khoản <span class="text-danger">*</span></label>
+        <InputText @bind-Value="Model.Username" class="form-control" />
+        <ValidationMessage For="()=>Model.Username" class="text-danger" />
+    </div>
+    <div class="col-12">
+        <label class="form-label">Họ và tên</label>
+        <InputText @bind-Value="Model.Name" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label class="form-label">Nhóm người dùng</label>
+        <InputSelect @bind-Value="Model.RoleId" class="form-select">
+            <option value="">
+                Select classification ...
+            </option>
+        </InputSelect>
+    </div>
+    <div class="col-12">
+        <label class="form-label">Mật khẩu</label>
+        <InputText @bind-Value="Model.Password" class="form-control" type="password" />
+        <ValidationMessage For="()=>Model.Password" class="text-danger" />
+    </div>
+    <div class="col mt-2 align-self-end">
+        <Button Color="ButtonColor.Secondary" @onclick="async ()=>{await ParentModal.HideAsync();}">Đóng</Button>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit">Lưu</Button>
+    </div>
+</EditForm>
+
+@code {
+    [Inject] protected ToastService ToastService { get; set; } = default!;
+    private string ErrorMessage = "";
+
+    private const string userForm = "user-form";
+    [SupplyParameterFromForm(FormName = userForm)]
+    private CreateUserModel Model { get; set; } = new();
+
+    [Parameter]
+    public Modal ParentModal { get; set; } = default!;
+    [Parameter]
+    public User? User { get; set; }
+
+    private async Task CreateOrUpdateAsync()
+    {
+        ErrorMessage = "";
+        if (User is not null)
+        {
+            var userExisted = await _userRepository.GetUserByUsername(Model.Username);
+            if (userExisted is not null)
+            {
+                if(userExisted.Id != User.Id){
+                    ErrorMessage = "Tên tài khoản đã đươc sử dụng";
+                    ToastService.Notify(new(ToastType.Danger, $"Lỗi: {ErrorMessage}."));
+                    return;
+                }
+            }
+            User.Username = Model.Username;
+            User.Name = Model.Name;
+            await _userRepository.Update(User);
+            await ParentModal.HideAsync();
+            ToastService.Notify(new(ToastType.Success, $"Cập nhật tài khoản[{User.Username}] thành công."));
+
+        }
+        else
+        {
+            var userExisted = await _userRepository.GetUserByUsername(Model.Username);
+            if (userExisted is not null)
+            {
+                ErrorMessage = "Tài khoản đã tồn tại";
+                ToastService.Notify(new(ToastType.Danger, $"Lỗi: {ErrorMessage}."));
+                return;
+            }
+
+            byte[] salt = [];
+            var hashedPassword = _hashString.HashPassword(Model.Password, out salt);
+            var user = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = Model.Username,
+                    Name = Model.Name,
+                    HashedPassword = hashedPassword,
+                    Salt = Convert.ToBase64String(salt)
+                };
+            await _userRepository.Add(user);
+
+            Model = new();
+            await ParentModal.HideAsync();
+            ToastService.Notify(new(ToastType.Success, $"Tạo tài khoản[{user.Username}] thành công."));
+        }
+
+
+
+    }
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        Model.Avatar = e.File;
+        @* var saveFolder = Path.Combine("C:\\Temp\\Files");
+        var filePath = Path.Combine(saveFolder, e.File.Name);
+        Directory.CreateDirectory(saveFolder);
+
+        await using FileStream fs = new(filePath, FileMode.Create);
+        await e.File.OpenReadStream().CopyToAsync(fs); *@
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.CompletedTask;
+
+        if (User is not null)
+        {
+            Model = new CreateUserModel { Name = User.Name, Username = User.Username };
+        }
+    }
+
+
+    class CreateUserModel
+    {
+        [Required]
+        public string Username { get; set; } = null!;
+        public string? Name { get; set; }
+        public IBrowserFile? Avatar { get; set; }
+        public Guid RoleId { get; set; }
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+
+    }
+}

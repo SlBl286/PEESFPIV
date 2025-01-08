@@ -11,8 +11,8 @@ builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 builder.Services.AddStates();
 builder.Services.AddUtils();
+builder.Services.AddBlazorBootstrap();
 builder.Services.AddCascadingAuthenticationState();
-
 builder.Services.AddDatabase(builder.Configuration);
 
 builder.Services.AddAuthentication(Cookies.AuthScheme)

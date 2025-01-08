@@ -1,6 +1,5 @@
 @page "/cms/auth/login"
 @using PEESFPIV.Frontend.Components.Layout;
-@using PEESFPIV.Frontend.Components.Components.UI;
 @using PEESFPIV.Frontend.Constants
 @using PEESFPIV.Frontend.Databases.Repositories.Interfaces
 @using PEESFPIV.Frontend.Models;
@@ -17,47 +16,41 @@
 @layout AuthLayout
 
 <PageTitle>Login</PageTitle>
-
-<div class="flex w-screen h-screen items-center  justify-center">
-    <Card>
-        <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2x">
-            Sign in to your account
-        </h1>
-        <EditForm Model="Model" class="flex flex-col gap-y-4 p-2" method="Post"
-        OnValidSubmit="LoginUserAsync" FormName="@LoginForm">
-            <div>
+<div class="h-100 row justify-content-center align-items-center">
+    <Card Class="pb-4 " style="width: 26rem;">
+        <CardBody>
+            <EditForm Model="Model" method="Post" OnValidSubmit="LoginUserAsync" FormName="@LoginForm" class="row gy-2">
                 <DataAnnotationsValidator/>
-            </div>
-            <div class="flex flex-col w-full">
-                <label class="block mb-2 text-md font-medium text-gray-900">Username</label>
-                <InputText @bind-Value="Model.Username"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-                <ValidationMessage For="()=>Model.Username" class=" text-red-600"/>
-            </div>
-            <div class="flex flex-col w-full">
-                <label class="block mb-2 text-md font-medium text-gray-900">Password</label>
-                <InputText type="password" @bind-Value="Model.Password"
-                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" />
-                <ValidationMessage For="()=>Model.Password" class=" text-red-600"/>
-            </div>
-            <div class="flex my-1 gap-x-2">
-                @* <label>RememberMe</label> *@
-                <InputCheckbox @bind-Value="Model.RememberMe" class="" />
-                <span>
+                <div class="col-12">
+                    <label class="form-label">Tài khoản</label>
+                    <InputText @bind-Value="Model.Username" class="form-control" />
+                    <ValidationMessage For="()=>Model.Username" class="text-danger" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Mật khẩu</label>
+                    <InputText type="password" @bind-Value="Model.Password" class="form-control" />
+                    <ValidationMessage For="()=>Model.Password" class=" text-danger" />
+                </div>
+                <div class="col-12">
+                    <InputCheckbox @bind-Value="Model.RememberMe" class="form-check-input" />
+                    <span>
 
-                    Ghi nhớ đăng nhập
-                </span>
-            </div>
-            <p class=" text-red-600">@ErrorMessage</p>
-            <div>
-                <button type="submit"
-                class="w-full bg-green-500 hover:bg-green-600 rounded text-xl py-2 text-white">Login</button>
-            </div>
-        </EditForm>
+
+                    </span>
+                    <label class="form-check-label">
+                        Ghi nhớ đăng nhập
+                    </label>
+                </div>
+                <p class="text-danger col-12">@ErrorMessage</p>
+                <div class="col-12">
+                    <Button Color="ButtonColor.Primary" Type="ButtonType.Submit" class="w-100">Login</Button>
+                    @* <button type="submit"
+            class="w-full bg-green-500 hover:bg-green-600 rounded text-xl py-2 text-white">Login</button> *@
+                </div>
+            </EditForm>
+        </CardBody>
     </Card>
 </div>
-
-
 @code {
     private string ErrorMessage = "";
     private const string LoginForm = "login-form";
@@ -72,23 +65,16 @@
 
     private async Task LoginUserAsync()
     {
-        await Task.Delay(1000);
-        ErrorMessage ="";
+        ErrorMessage = "";
         var user = await UserRepository.GetUserByUsername(Model.Username);
-        @* if (user is null)
+        if (user is null)
         {
-            byte[] salt = [];
-            var hashedPass = hashString.HashPassword(Model.Password,out salt);
-            user = new User { Username=Model.Username,HashedPassword = hashedPass,Salt =   Convert.ToBase64String(salt),Id = Guid.NewGuid(),Name= "Admin"};
-            await UserRepository.Add(user);
-        } *@
-       if (user is null)
-        {
-            ErrorMessage = "Tài khoản Không tồn tại";
+            ErrorMessage = "Tài khoản không tồn tại";
             return;
         }
-        if(!hashString.VerifyPassword(Model.Password,user.HashedPassword,Convert.FromBase64String(user.Salt))){
-             ErrorMessage = "Tài khoản và mật khẩu không khớp";
+        if (!hashString.VerifyPassword(Model.Password, user.HashedPassword, Convert.FromBase64String(user.Salt)))
+        {
+            ErrorMessage = "Tài khoản và mật khẩu không khớp";
             return;
         }
         var claims = user?.ToClaims();
@@ -99,21 +85,27 @@
                 IsPersistent = Model.RememberMe
             };
         await HttpContext.SignInAsync(Cookies.AuthScheme, principal, authProps);
-        NavigationManager.NavigateTo(ReturnUrl ?? "/cms");
+        ReturnUrl ??= "/cms";
+        NavigationManager.NavigateTo(ReturnUrl);
     }
 
     protected override async Task OnInitializedAsync()
     {
         await Task.CompletedTask;
-        if (HttpContext.User.Identity?.IsAuthenticated ?? false) NavigationManager.NavigateTo(ReturnUrl ?? "/cms");
+
+        if (HttpContext is not null)
+            if (HttpContext.User.Identity?.IsAuthenticated ?? false)
+            {
+                NavigationManager.NavigateTo(ReturnUrl ?? "/cms");
+            }
     }
 
     class LoginModel
     {
-        [Required()]
+        [Required(ErrorMessage="Tài khoản đang để trống")]
         public string Username { get; set; } = null!;
 
-        [Required]
+        [Required(ErrorMessage="Mật khẩu đang để trống")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = "";
         [Display(Name = "Ghi nhớ đăng nhập")]

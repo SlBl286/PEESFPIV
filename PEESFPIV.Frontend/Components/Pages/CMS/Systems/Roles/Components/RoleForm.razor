@@ -1,0 +1,80 @@
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
+@using PEESFPIV.Frontend.Models.Auth
+@using PEESFPIV.Frontend.Utils.Interfaces
+@using System.ComponentModel.DataAnnotations
+
+@inject IRoleRepository _roleRepository;
+@inject IHashString _hashString;
+
+<EditForm Model="Model" method="Post" OnValidSubmit="CreateAsync" FormName="@roleForm" class="row gy-2"
+    enctype="multipart/form-data">
+                <DataAnnotationsValidator/>
+
+    <div class="col-12">
+        <label class="form-label">Tên nhóm</label>
+        <InputText @bind-Value="Model.Name" class="form-control" />
+        <ValidationMessage For="()=>Model.Description" class="text-danger" />
+    </div>
+    <div class="col-12">
+        <label class="form-label">Mô tả</label>
+        <InputText @bind-Value="Model.Description" class="form-control"  />
+    </div>
+    <div class="col mt-2 align-self-end">
+        <Button Color="ButtonColor.Secondary" @onclick="async ()=>{await ParentModal.HideAsync();}">Đóng</Button>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit">Lưu</Button>
+    </div>
+</EditForm>
+
+@code {
+    [Inject] protected ToastService ToastService { get; set; } = default!;
+    private string ErrorMessage = "";
+
+    private const string roleForm = "role-form";
+    [SupplyParameterFromForm(FormName = roleForm)]
+    private CreateRoleModel Model { get; set; } = new();
+
+    [Parameter]
+    public Modal ParentModal { get; set; }  = default!;
+    [Parameter]
+    public Role? Role { get; set; }
+
+    private async Task CreateAsync()
+    {
+        ErrorMessage = "";
+
+        byte[] salt = [];
+     
+        var role = new Role{ Id=Guid.NewGuid(),Name= Model.Name,Description = Model.Description};
+        await _roleRepository.Add(role);
+
+        Model = new();
+        await ParentModal.HideAsync();
+        ToastService.Notify(new(ToastType.Success, $"Tạo nhóm [{role.Name}] thành công."));
+
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.CompletedTask;
+
+        if (Role is null)
+        {
+
+        }
+        else
+        {
+
+        }
+    }
+
+
+    class CreateRoleModel
+    {
+        [Required]
+        public string Name { get; set; }
+        public string? Description { get; set; } = "";
+
+
+    }
+}

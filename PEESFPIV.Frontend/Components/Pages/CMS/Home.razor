@@ -7,39 +7,17 @@
 @using PEESFPIV.Frontend.States
 @using System.Data
 
-@rendermode InteractiveServer
-@implements IDisposable
 @layout CMSLayout
-@inject SidebarState SidebarState
 
 
 
 <PageTitle>CMS</PageTitle>
 
-<div class="flex flex-col @(sidebarIsOpen ? "ml-64": "")">
+<div class="flex flex-col ">
 </div>
 
 
 
 @code {
-    private bool sidebarIsOpen;
-    protected override async Task OnInitializedAsync()
-    {
-        await Task.CompletedTask;
-        sidebarIsOpen = SidebarState.IsOpen;
-        SidebarState.OnChange += UpdateState;
-
-    }
-
-    void UpdateState()
-    {
-        sidebarIsOpen = SidebarState.IsOpen;
-        StateHasChanged();
-    }
-    public void Dispose()
-    {
-        SidebarState.OnChange -= UpdateState;
-
-    }
 
 }

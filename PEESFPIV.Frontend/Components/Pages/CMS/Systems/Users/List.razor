@@ -1,0 +1,152 @@
+@page "/CMS/Users"
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization
+@using PEESFPIV.Frontend.Components.Layout;
+@using PEESFPIV.Frontend.Components.Pages.CMS.Systems.Users.Components
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
+@using PEESFPIV.Frontend.Models.Auth;
+@using System.Security.Claims
+@using PEESFPIV.Frontend.States
+@using System.Data
+@inject IUserRepository _userRepository;
+
+@layout CMSLayout
+
+
+
+<PageTitle>Quản lý người dùng</PageTitle>
+
+<div class="">
+    <p class="fs-1 fw-semibold">Quản lý người dùng</p>
+    <div class="mb-3">
+        <Button Color="ButtonColor.Success" @onclick="OnShowModalClick" class="me-2">
+            <Icon Name="IconName.PlusLg" /> Thêm người dùng
+        </Button>
+        @if(selectedUsers.Count == 1){
+            <Button Color="ButtonColor.Primary" @onclick="OnShowModalClick" class="me-2">
+                <Icon Name="IconName.Pencil" class=""/> Cập nhật thông tin
+            </Button>
+        }
+        @if(selectedUsers.Count >0){
+            <Button Color="ButtonColor.Danger" @onclick="OnShowModalClick" class="">
+                <Icon Name="IconName.Trash"/> Xoá
+            </Button>
+        }
+    </div>
+    <Grid
+        @ref="grid"
+        TItem="User" 
+        Class="table table-hover table-bordered table-striped rounded" 
+        DataProvider="UsersDataProvider"
+        FiltersTranslationProvider="GridFiltersTranslationProvider" 
+        AllowFiltering="true" 
+        AllowPaging="true"
+        PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5,10,20 })"
+        PaginationItemsTextFormat="{0} - {1} trong tổng {2} bản ghi"
+        ItemsPerPageText="bản ghi trên trang"
+        AllowSorting="true" 
+        AllowSelection="true"
+        SelectionMode="GridSelectionMode.Multiple"
+        SelectedItemsChanged="OnSelectedItemsChanged"
+        OnRowClick="OnRowClick"
+        AllowRowClick="true"
+        EmptyText="Không có bản ghi nào" 
+        Responsive="true">
+        <GridColumn TItem="User" HeaderText="Tên tài khoản" PropertyName="Username" SortString="Username"
+            SortKeySelector="item => item.Username">
+            @context.Username
+        </GridColumn>
+        <GridColumn TItem="User" HeaderText="Họ và tên" PropertyName="Name" SortString="Name"
+            SortKeySelector="item => item.Name" >
+            @context.Name
+        </GridColumn>
+        <GridColumn TItem="User" HeaderText="Cập nhật lần cuối" PropertyName="UpdatedAt" SortString="UpdatedAt"
+            SortKeySelector="item => item.UpdatedAt" >
+            @(context.UpdatedAt.ToString("dd/MM/yyyy HH:mm"))
+        </GridColumn>
+    </Grid>
+</div>
+
+<Modal @ref="modal" title="@addNUpdateModalTitle" IsVerticallyCentered="true" OnHidden="OnCreateModalHide">
+    <BodyTemplate>
+        <UserForm ParentModal="modal" User="selectedUsers.FirstOrDefault()"/>
+    </BodyTemplate>
+</Modal>
+
+@code {
+    private string addNUpdateModalTitle = "Tạo mới người dùng";
+    Grid<User> grid = default!;
+    private Modal modal = default!;
+    private HashSet<User> selectedUsers = new();
+
+    private async Task OnShowModalClick()
+    {
+        await modal.ShowAsync();
+    }
+    private async Task OnCreateModalHide (){
+        await grid.RefreshDataAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await modal.HideAsync();
+    }
+    private Task OnSelectedItemsChanged(HashSet<User> users)
+    {
+        selectedUsers = users is not null && users.Any() ? users : new();
+
+        if(selectedUsers.Count >0){
+            addNUpdateModalTitle = "Cập nhật thông tin người dùng";
+        }
+        else{
+            addNUpdateModalTitle="Tạo mới người dùng";
+        }
+        return Task.CompletedTask;
+    }
+    private async Task OnRowClick(GridRowEventArgs<User> args)
+    {
+        selectedUsers.Add(args.Item);
+        await Task.CompletedTask;
+
+    }
+    private async Task<IEnumerable<FilterOperatorInfo>> GridFiltersTranslationProvider()
+    {
+        var filtersTranslation = new List<FilterOperatorInfo>();
+
+        // number/date/boolean
+        filtersTranslation.Add(new("=", "Bằng", FilterOperator.Equals));
+        filtersTranslation.Add(new("!=", "Khác", FilterOperator.NotEquals));
+        // number/date
+        filtersTranslation.Add(new("<", "Nhỏ hơn", FilterOperator.LessThan));
+        filtersTranslation.Add(new("<=", "Nhỏ hơn hoặc bằng", FilterOperator.LessThanOrEquals));
+        filtersTranslation.Add(new(">", "Lớn hơn", FilterOperator.GreaterThan));
+        filtersTranslation.Add(new(">=", "Lớn hơn hoặc bằng", FilterOperator.GreaterThanOrEquals));
+        // string
+        filtersTranslation.Add(new("*a*", "Chứa từ", FilterOperator.Contains));
+        filtersTranslation.Add(new("!*a*", "Không chứa từ", FilterOperator.DoesNotContain));
+        filtersTranslation.Add(new("a**", "Bắt đầu bằng", FilterOperator.StartsWith));
+        filtersTranslation.Add(new("**a", "Kết thúc bằng", FilterOperator.EndsWith));
+        filtersTranslation.Add(new("=", "Bằng", FilterOperator.Equals));
+        // common
+        filtersTranslation.Add(new("x", "Xoá lọc", FilterOperator.Clear)); 
+
+        return await Task.FromResult(filtersTranslation);
+    }
+    private async Task<GridDataProviderResult<User>> UsersDataProvider(GridDataProviderRequest<User> request)
+    {
+        string sortString = "";
+        SortDirection sortDirection = SortDirection.None;
+
+        if (request.Sorting is not null && request.Sorting.Any())
+        {
+            // Note: Multi column sorting is not supported at this moment
+            sortString = request.Sorting.FirstOrDefault()!.SortString;
+            sortDirection = request.Sorting.FirstOrDefault()!.SortDirection;
+        }
+        var result = await _userRepository.GetPagedList(request.PageNumber, request.PageSize, sortString,
+        sortDirection.ToString());
+        return await Task.FromResult(new GridDataProviderResult<User> { Data = result.Values, TotalCount = result.Total });
+    }
+
+}
