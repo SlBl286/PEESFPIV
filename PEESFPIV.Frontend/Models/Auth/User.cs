@@ -5,10 +5,14 @@ namespace PEESFPIV.Frontend.Models.Auth;
 public sealed class User : BaseModel
 {
     public string Username { get; set; } = null!;
+    public Guid? RoleId { get; set; }
     public string? Name { get; set; }
     public string? Avatar { get; set; }
     public string HashedPassword { get; set; } = null!;
     public string Salt { get; set; } = null!;
+
+    public Role? Role{ get; set; }
+
     public Claim[] ToClaims() =>
     [
        new Claim(ClaimTypes.NameIdentifier, Id.ToString()),

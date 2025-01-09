@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PEESFPIV.Frontend.Databases;
 
@@ -11,9 +12,11 @@ using PEESFPIV.Frontend.Databases;
 namespace PEESFPIV.Frontend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250109031836_Update_UserRole")]
+    partial class Update_UserRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,9 +79,6 @@ namespace PEESFPIV.Frontend.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<Guid?>("RoleId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Salt")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -96,72 +96,57 @@ namespace PEESFPIV.Frontend.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoleId");
-
                     b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("User", (string)null);
                 });
 
-            modelBuilder.Entity("PEESFPIV.Frontend.Models.SystemConfig", b =>
+            modelBuilder.Entity("PEESFPIV.Frontend.Models.Auth.UserRole", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("getdate()");
 
-                    b.Property<string>("EnValue")
-                        .HasMaxLength(2147483645)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GroupCode")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("getdate()");
 
-                    b.Property<string>("VnValue")
-                        .HasMaxLength(2147483645)
-                        .HasColumnType("nvarchar(max)");
+                    b.HasKey("UserId", "RoleId");
 
-                    b.HasKey("Id");
+                    b.HasIndex("RoleId");
 
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.ToTable("SystemConfig", (string)null);
+                    b.ToTable("UserRole", (string)null);
                 });
 
-            modelBuilder.Entity("PEESFPIV.Frontend.Models.Auth.User", b =>
+            modelBuilder.Entity("PEESFPIV.Frontend.Models.Auth.UserRole", b =>
                 {
                     b.HasOne("PEESFPIV.Frontend.Models.Auth.Role", "Role")
-                        .WithMany("Users")
-                        .HasForeignKey("RoleId");
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PEESFPIV.Frontend.Models.Auth.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Role");
-                });
 
-            modelBuilder.Entity("PEESFPIV.Frontend.Models.Auth.Role", b =>
-                {
-                    b.Navigation("Users");
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

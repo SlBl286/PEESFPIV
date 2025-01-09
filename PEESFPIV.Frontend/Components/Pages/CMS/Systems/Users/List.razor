@@ -8,83 +8,130 @@
 @using System.Security.Claims
 @using PEESFPIV.Frontend.States
 @using System.Data
+
 @inject IUserRepository _userRepository;
+@inject IWebHostEnvironment _env;
 
 @layout CMSLayout
 
 
 
-<PageTitle>Quản lý người dùng</PageTitle>
+<PageTitle>Quản lý tài khoản</PageTitle>
 
 <div class="">
-    <p class="fs-1 fw-semibold">Quản lý người dùng</p>
+    <p class="fs-1 fw-semibold">Quản lý tài khoản</p>
     <div class="mb-3">
-        <Button Color="ButtonColor.Success" @onclick="OnShowModalClick" class="me-2">
-            <Icon Name="IconName.PlusLg" /> Thêm người dùng
+        <Button Color="ButtonColor.Success" @onclick="OnShowModalCreateClick" class="me-2">
+            <Icon Name="IconName.PlusLg" /> Thêm tài khoản
         </Button>
-        @if(selectedUsers.Count == 1){
-            <Button Color="ButtonColor.Primary" @onclick="OnShowModalClick" class="me-2">
-                <Icon Name="IconName.Pencil" class=""/> Cập nhật thông tin
+        @if (selectedUsers.Count == 1)
+        {
+            <Button Color="ButtonColor.Primary" @onclick="OnShowModalUpdateClick" class="me-2">
+                <Icon Name="IconName.Pencil" class="" /> Cập nhật thông tin
             </Button>
         }
-        @if(selectedUsers.Count >0){
-            <Button Color="ButtonColor.Danger" @onclick="OnShowModalClick" class="">
-                <Icon Name="IconName.Trash"/> Xoá
+        @if (selectedUsers.Count > 0)
+        {
+            <Button Color="ButtonColor.Danger" @onclick="ShowDeleteConfirmationAsync" class="">
+                <Icon Name="IconName.Trash" /> Xoá
             </Button>
         }
     </div>
-    <Grid
-        @ref="grid"
-        TItem="User" 
-        Class="table table-hover table-bordered table-striped rounded" 
-        DataProvider="UsersDataProvider"
-        FiltersTranslationProvider="GridFiltersTranslationProvider" 
-        AllowFiltering="true" 
-        AllowPaging="true"
-        PageSizeSelectorVisible="true"
-        PageSizeSelectorItems="@(new int[] { 5,10,20 })"
-        PaginationItemsTextFormat="{0} - {1} trong tổng {2} bản ghi"
-        ItemsPerPageText="bản ghi trên trang"
-        AllowSorting="true" 
-        AllowSelection="true"
-        SelectionMode="GridSelectionMode.Multiple"
-        SelectedItemsChanged="OnSelectedItemsChanged"
-        OnRowClick="OnRowClick"
-        AllowRowClick="true"
-        EmptyText="Không có bản ghi nào" 
-        Responsive="true">
+    <Grid @ref="grid" TItem="User" Class="table table-hover table-bordered table-striped rounded"
+        DataProvider="UsersDataProvider" FiltersTranslationProvider="GridFiltersTranslationProvider"
+        AllowFiltering="true" AllowPaging="true" PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5,10,20 })" PaginationItemsTextFormat="{0} - {1} trong tổng {2} bản ghi"
+        ItemsPerPageText="bản ghi trên trang" AllowSorting="true" AllowSelection="true"
+        SelectionMode="GridSelectionMode.Multiple" SelectedItemsChanged="OnSelectedItemsChanged"
+        OnRowDoubleClick="OnRowDbClick" AllowRowClick="true" EmptyText="Không có bản ghi nào" Responsive="true">
         <GridColumn TItem="User" HeaderText="Tên tài khoản" PropertyName="Username" SortString="Username"
             SortKeySelector="item => item.Username">
+            <Image Src="@GetAvatar(context.Avatar)"  IsThumbnail="true" style="width:50px;height:50px;" class="object-fit-fill rounded boder"  Alt="@context.Username"/> 
             @context.Username
         </GridColumn>
         <GridColumn TItem="User" HeaderText="Họ và tên" PropertyName="Name" SortString="Name"
-            SortKeySelector="item => item.Name" >
+            SortKeySelector="item => item.Name">
             @context.Name
         </GridColumn>
+        <GridColumn TItem="User" HeaderText="Nhóm tài khoản" PropertyName="RoleId" SortString="RoleId"
+            SortKeySelector="item => item.RoleId">
+            @(context.Role is not null ? context.Role.Name : "Không thuộc nhóm nào")
+        </GridColumn>
         <GridColumn TItem="User" HeaderText="Cập nhật lần cuối" PropertyName="UpdatedAt" SortString="UpdatedAt"
-            SortKeySelector="item => item.UpdatedAt" >
+            SortKeySelector="item => item.UpdatedAt">
             @(context.UpdatedAt.ToString("dd/MM/yyyy HH:mm"))
         </GridColumn>
     </Grid>
 </div>
-
+<ConfirmDialog @ref="dialog" />
 <Modal @ref="modal" title="@addNUpdateModalTitle" IsVerticallyCentered="true" OnHidden="OnCreateModalHide">
     <BodyTemplate>
-        <UserForm ParentModal="modal" User="selectedUsers.FirstOrDefault()"/>
+        <UserForm ParentModal="modal" User="updateUser" />
     </BodyTemplate>
 </Modal>
 
 @code {
-    private string addNUpdateModalTitle = "Tạo mới người dùng";
+    [Inject] protected ToastService ToastService { get; set; } = default!;
+    private string addNUpdateModalTitle = "Tạo mới tài khoản";
+    private ConfirmDialog dialog = default!;
     Grid<User> grid = default!;
     private Modal modal = default!;
+    private User? updateUser { get; set; } = null;
     private HashSet<User> selectedUsers = new();
-
-    private async Task OnShowModalClick()
+    private async Task ShowDeleteConfirmationAsync()
     {
+        var options = new ConfirmDialogOptions
+            {
+                YesButtonText = "Xoá",
+                YesButtonColor = ButtonColor.Danger,
+                NoButtonText = "Huỷ",
+                NoButtonColor = ButtonColor.Primary
+            };
+
+        var confirmation = await dialog.ShowAsync(
+        title: "Xoá tài khoản",
+        message1: $"Xác nhận xoá {selectedUsers.Count} tài khoản?",
+        confirmDialogOptions: options);
+
+        if (confirmation)
+        {
+            var selectedIds = selectedUsers.Select(u => u.Id).ToList();
+            if (selectedIds is not null)
+            {
+                await _userRepository.Delete(selectedIds);
+                foreach(var avatarPath in selectedUsers.Select(u => u.Avatar).ToList()){
+                     if(avatarPath is not null){
+                    var saveFolder = Path.Combine(_env.ContentRootPath,"wwwroot");
+                    var filePath = Path.Combine(saveFolder, avatarPath);
+                    if(File.Exists(filePath)){
+                        File.Delete(filePath);
+                }
+            }
+                }
+                await grid.RefreshDataAsync();
+                ToastService.Notify(new(ToastType.Success, $"Xoá tài khoản thành công."));
+            }     
+        }
+    }
+
+    private async Task OnShowModalCreateClick()
+    {
+        addNUpdateModalTitle = "Tạo mới tài khoản";
+        updateUser = null;
         await modal.ShowAsync();
     }
-    private async Task OnCreateModalHide (){
+    private string GetAvatar(string? avatarPath){
+        if(avatarPath is null) return "/images/blank-avatar.png";
+        else return "\\"+avatarPath ;
+    }
+    private async Task OnShowModalUpdateClick()
+    {
+        addNUpdateModalTitle = "Cập nhật thông tin người dùng";
+        updateUser = selectedUsers.FirstOrDefault();
+        await modal.ShowAsync();
+    }
+    private async Task OnCreateModalHide()
+    {
         await grid.RefreshDataAsync();
     }
 
@@ -96,18 +143,13 @@
     {
         selectedUsers = users is not null && users.Any() ? users : new();
 
-        if(selectedUsers.Count >0){
-            addNUpdateModalTitle = "Cập nhật thông tin người dùng";
-        }
-        else{
-            addNUpdateModalTitle="Tạo mới người dùng";
-        }
         return Task.CompletedTask;
     }
-    private async Task OnRowClick(GridRowEventArgs<User> args)
+    private async Task OnRowDbClick(GridRowEventArgs<User> args)
     {
-        selectedUsers.Add(args.Item);
-        await Task.CompletedTask;
+        addNUpdateModalTitle = "Cập nhật thông tin người dùng";
+        updateUser = args.Item;
+        await modal.ShowAsync();
 
     }
     private async Task<IEnumerable<FilterOperatorInfo>> GridFiltersTranslationProvider()
@@ -129,7 +171,7 @@
         filtersTranslation.Add(new("**a", "Kết thúc bằng", FilterOperator.EndsWith));
         filtersTranslation.Add(new("=", "Bằng", FilterOperator.Equals));
         // common
-        filtersTranslation.Add(new("x", "Xoá lọc", FilterOperator.Clear)); 
+        filtersTranslation.Add(new("x", "Xoá lọc", FilterOperator.Clear));
 
         return await Task.FromResult(filtersTranslation);
     }

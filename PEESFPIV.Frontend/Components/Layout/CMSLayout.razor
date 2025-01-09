@@ -12,7 +12,7 @@
                 <ThemeSwitcher Class="ps-3 ps-lg-2" />
                 <Dropdown >
                     <DropdownToggleButton class="text-center">
-                        @(context.User.Claims.FirstOrDefault(c=>c.Type == ClaimTypes.Name).Value ?? "")
+                        @(context.User.Claims.FirstOrDefault(c=>c.Type == ClaimTypes.Name)!.Value ?? "")
                     </DropdownToggleButton>
                     <DropdownMenu class="gy-1 row">
                         <DropdownItem To="#" Type="DropdownItemType.Link" >
@@ -80,6 +80,7 @@
             new NavItem { Id = "100", IconName = IconName.Gear, Text = "Hệ thống" },
             new NavItem { Id = "101", Href = "/cms/users", IconName = IconName.Person, Text = "Tài khoản", ParentId="100" },
             new NavItem { Id = "102", Href = "/cms/roles", IconName = IconName.People, Text = "Nhóm tài khoản", ParentId="100"},
+            new NavItem { Id = "103", Href = "/cms/systemconfig", IconName = IconName.Wifi, Text = "Cấu hình chung", ParentId="100"},
         };
 
         return navItems;

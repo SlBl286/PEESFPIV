@@ -41,15 +41,23 @@
     private async Task CreateAsync()
     {
         ErrorMessage = "";
+        if(Role is not null){
+            Role.Name = Model.Name;
+            Role.Description = Model.Description;
+            await _roleRepository.Update(Role);
+            Model = new();
+            await ParentModal.HideAsync();
+            ToastService.Notify(new(ToastType.Success, $"Cập nhật [{Role.Name}] thành công."));
+        }
+        else{
+            var role = new Role{ Id=Guid.NewGuid(),Name= Model.Name,Description = Model.Description};
+            await _roleRepository.Add(role);
 
-        byte[] salt = [];
+            Model = new();
+            await ParentModal.HideAsync();
+            ToastService.Notify(new(ToastType.Success, $"Tạo [{role.Name}] thành công."));
+        }
      
-        var role = new Role{ Id=Guid.NewGuid(),Name= Model.Name,Description = Model.Description};
-        await _roleRepository.Add(role);
-
-        Model = new();
-        await ParentModal.HideAsync();
-        ToastService.Notify(new(ToastType.Success, $"Tạo nhóm [{role.Name}] thành công."));
 
 
     }
@@ -58,13 +66,13 @@
     {
         await Task.CompletedTask;
 
-        if (Role is null)
+        if (Role is not null)
         {
-
+            Model = new CreateRoleModel{ Description = Role.Description ,Name = Role.Name};
         }
         else
         {
-
+            Model = new();
         }
     }
 

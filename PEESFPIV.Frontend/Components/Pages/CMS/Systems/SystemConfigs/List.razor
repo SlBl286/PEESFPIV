@@ -1,0 +1,107 @@
+@page "/CMS/SystemConfig"
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.Authorization
+@using PEESFPIV.Frontend.Components.Layout;
+@using PEESFPIV.Frontend.Components.Pages.CMS.Systems.SystemConfigs.Components
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
+@using PEESFPIV.Frontend.Models
+@using PEESFPIV.Frontend.Models.Auth;
+@using System.Security.Claims
+@using PEESFPIV.Frontend.States
+@using System.Data
+
+@inject ISystemConfigRepository _systemConfigRepository;
+@inject IWebHostEnvironment _env;
+
+@layout CMSLayout
+
+
+
+<PageTitle>Cấu hình chung</PageTitle>
+
+<div class="">
+    <p class="fs-1 fw-semibold">Cấu hình chung</p>
+    <div class="mb-3">
+        <Button Color="ButtonColor.Success" @onclick="OnShowModalCreateClick" class="me-2">
+            <Icon Name="IconName.PlusLg" /> Thêm cấu hình 
+        </Button>
+    
+    </div>
+    <div class="row gy-2">
+        @foreach(var config in systemConfigs){
+            <div class="col-6">
+                <label >@config.Name (Tiếng việt)</label>
+                <InputText @bind-Value="@config.VnValue" class="form-control" placeholder="tiếng việt"/>
+            </div>
+             <div class="col-6">
+                <label >@config.Name (English)</label>
+                <InputText @bind-Value="@config.EnValue" class="form-control" placeholder="english"/>
+            </div>
+        }
+    </div>
+</div>
+<ConfirmDialog @ref="dialog" />
+<Modal @ref="modal" title="@addNUpdateModalTitle" IsVerticallyCentered="true" OnHidden="OnCreateModalHide">
+    <BodyTemplate>
+        <SystemConfigForm ParentModal="modal" Config="updateConfig" />
+    </BodyTemplate>
+</Modal>
+
+@code {
+    [Inject] protected ToastService ToastService { get; set; } = default!;
+    private string addNUpdateModalTitle = "Tạo cấu hình mới";
+    private ConfirmDialog dialog = default!;
+    Grid<User> grid = default!;
+    private Modal modal = default!;
+    private SystemConfig? updateConfig { get; set; } = null;
+
+    private List<SystemConfig> systemConfigs = new();
+    private async Task ShowDeleteConfirmationAsync()
+    {
+        var options = new ConfirmDialogOptions
+            {
+                YesButtonText = "Xoá",
+                YesButtonColor = ButtonColor.Danger,
+                NoButtonText = "Huỷ",
+                NoButtonColor = ButtonColor.Primary
+            };
+
+        var confirmation = await dialog.ShowAsync(
+        title: "Xoá tài khoản",
+        message1: $"Xác nhận xoá tài khoản?",
+        confirmDialogOptions: options);
+
+        if (confirmation)
+        {
+            
+        }
+    }
+
+    private async Task OnShowModalCreateClick()
+    {
+        addNUpdateModalTitle = "Tạo cấu hình mới";
+        updateConfig = null;
+        await modal.ShowAsync();
+    }
+    private async Task OnShowModalUpdateClick()
+    {
+        addNUpdateModalTitle = "Cập nhật thông tin người dùng";
+       
+        await modal.ShowAsync();
+    }
+    private async Task OnCreateModalHide()
+    {
+        await grid.RefreshDataAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await modal.HideAsync();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        systemConfigs = await _systemConfigRepository.GetList();
+        base.OnInitialized();
+    }
+
+}

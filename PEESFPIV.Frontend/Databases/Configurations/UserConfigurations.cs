@@ -14,6 +14,8 @@ public class UserConfigurations : IEntityTypeConfiguration<User>
         builder.ToTable("User");
 
         builder.HasKey(m => m.Id);
+
+        builder.HasOne(u=>u.Role).WithMany(r => r.Users).HasForeignKey(u => u.RoleId);
         builder.Property(m => m.Name)
             .HasMaxLength(255);
         builder.Property(m => m.Avatar)

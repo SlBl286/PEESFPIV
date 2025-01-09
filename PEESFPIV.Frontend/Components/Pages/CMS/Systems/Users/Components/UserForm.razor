@@ -4,21 +4,24 @@
 @using System.ComponentModel.DataAnnotations
 
 @inject IUserRepository _userRepository;
+@inject IRoleRepository _roleRepository;
 @inject IHashString _hashString;
+@inject IWebHostEnvironment _env;
+@inject IJSRuntime js;
 
 <EditForm Model="Model" method="Post" OnValidSubmit="CreateOrUpdateAsync" FormName="@userForm" class="row gy-2"
     enctype="multipart/form-data">
     <DataAnnotationsValidator />
-    <div class="col-6">
-        <label class="form-label">Ảnh đại diện</label>
-        <InputFile OnChange="UploadFile" class="form-control" />
-    </div>
-    <div class="col-6">
+    <div class="col-12 text-center">
+        <label class="form-label col-12">Ảnh đại diện</label>
+            <Image src="@avatarPreview" @onclick="OnImageClick" class="object-fit-fill rounded boder avatar-picker" IsThumbnail="true"  style="width:100px;height:100px;" alt="avatar" />
+        <InputFile OnChange="UploadFile" @ref="avatarPickerInput" class="form-control" accept=".jpg,.png,.jpeg,.svg,.webp" hidden />
 
     </div>
     <div class="col-12">
         <label class="form-label">Tên tài khoản <span class="text-danger">*</span></label>
-        <InputText @bind-Value="Model.Username" class="form-control" />
+        <InputText @bind-Value="Model.Username" class="form-control" disabled="@(User is not null)"
+            readonly="@(User is not null)" />
         <ValidationMessage For="()=>Model.Username" class="text-danger" />
     </div>
     <div class="col-12">
@@ -28,9 +31,15 @@
     <div class="col-12">
         <label class="form-label">Nhóm người dùng</label>
         <InputSelect @bind-Value="Model.RoleId" class="form-select">
-            <option value="">
-                Select classification ...
+            <option value="null">
+                Chọn nhóm
             </option>
+            @foreach (var role in Roles)
+            {
+                <option value="@role.Id">
+                    @role.Name
+                </option>
+            }
         </InputSelect>
     </div>
     <div class="col-12">
@@ -48,6 +57,8 @@
     [Inject] protected ToastService ToastService { get; set; } = default!;
     private string ErrorMessage = "";
 
+    private string avatarPreview = "/images/blank-avatar.png";
+    private InputFile avatarPickerInput;
     private const string userForm = "user-form";
     [SupplyParameterFromForm(FormName = userForm)]
     private CreateUserModel Model { get; set; } = new();
@@ -56,6 +67,7 @@
     public Modal ParentModal { get; set; } = default!;
     [Parameter]
     public User? User { get; set; }
+    public List<Role> Roles { get; set; } = new List<Role>();
 
     private async Task CreateOrUpdateAsync()
     {
@@ -65,7 +77,8 @@
             var userExisted = await _userRepository.GetUserByUsername(Model.Username);
             if (userExisted is not null)
             {
-                if(userExisted.Id != User.Id){
+                if (userExisted.Id != User.Id)
+                {
                     ErrorMessage = "Tên tài khoản đã đươc sử dụng";
                     ToastService.Notify(new(ToastType.Danger, $"Lỗi: {ErrorMessage}."));
                     return;
@@ -73,9 +86,35 @@
             }
             User.Username = Model.Username;
             User.Name = Model.Name;
+            User.RoleId = Model.RoleId;
+            if (Model.Password != User.Salt)
+            {
+                byte[] salt = [];
+                var hashedPassword = _hashString.HashPassword(Model.Password, out salt);
+                User.HashedPassword = hashedPassword;
+                User.Salt = Convert.ToBase64String(salt);
+            }
+            var oldAvatarPath = User.Avatar;
+            if(Model.Avatar is not null){
+                var saveFolder = Path.Combine(_env.ContentRootPath,"wwwroot","uploads","users");
+                var fileName = Path.GetFileNameWithoutExtension(Model.Avatar.Name)+"_"+Path.GetRandomFileName()+Path.GetExtension(Model.Avatar.Name);
+                var filePath = Path.Combine(saveFolder,fileName);
+                Directory.CreateDirectory(saveFolder);
+                await using FileStream fs = new(filePath, FileMode.Create);
+                await  Model.Avatar.OpenReadStream().CopyToAsync(fs); 
+                User.Avatar = Path.Combine("uploads","users",fileName);
+            }
+
             await _userRepository.Update(User);
+            if(oldAvatarPath is not null){
+                var saveFolder = Path.Combine(_env.ContentRootPath,"wwwroot");
+                var filePath = Path.Combine(saveFolder, oldAvatarPath);
+                if(File.Exists(filePath)){
+                    File.Delete(filePath);
+                }
+            }
             await ParentModal.HideAsync();
-            ToastService.Notify(new(ToastType.Success, $"Cập nhật tài khoản[{User.Username}] thành công."));
+            ToastService.Notify(new(ToastType.Success, $"Cập nhật tài khoản [{User.Username}] thành công."));
 
         }
         else
@@ -87,7 +126,17 @@
                 ToastService.Notify(new(ToastType.Danger, $"Lỗi: {ErrorMessage}."));
                 return;
             }
+            string? avatarPath =null;
+            if(Model.Avatar is not null){
+                var saveFolder = Path.Combine(_env.ContentRootPath,"wwwroot","uploads","users");
+                var fileName = Path.GetFileNameWithoutExtension(Model.Avatar.Name)+"_"+Path.GetRandomFileName()+Path.GetExtension(Model.Avatar.Name);
+                var filePath = Path.Combine(saveFolder, fileName);
+                Directory.CreateDirectory(saveFolder);
 
+                await using FileStream fs = new(filePath, FileMode.Create);
+                await  Model.Avatar.OpenReadStream().CopyToAsync(fs); 
+                avatarPath =  Path.Combine("uploads","users", fileName);
+            }
             byte[] salt = [];
             var hashedPassword = _hashString.HashPassword(Model.Password, out salt);
             var user = new User
@@ -96,27 +145,33 @@
                     Username = Model.Username,
                     Name = Model.Name,
                     HashedPassword = hashedPassword,
+                    RoleId = Model.RoleId,
+                    Avatar = avatarPath,
                     Salt = Convert.ToBase64String(salt)
                 };
             await _userRepository.Add(user);
-
-            Model = new();
             await ParentModal.HideAsync();
-            ToastService.Notify(new(ToastType.Success, $"Tạo tài khoản[{user.Username}] thành công."));
+            ToastService.Notify(new(ToastType.Success, $"Tạo tài khoản [{user.Username}] thành công."));
         }
 
-
+    }
+    private async Task OnImageClick(){
+        await js.InvokeAsync<object>("HTMLElement.prototype.click.call", avatarPickerInput.Element);
 
     }
+
     private async Task UploadFile(InputFileChangeEventArgs e)
     {
         Model.Avatar = e.File;
-        @* var saveFolder = Path.Combine("C:\\Temp\\Files");
-        var filePath = Path.Combine(saveFolder, e.File.Name);
-        Directory.CreateDirectory(saveFolder);
 
-        await using FileStream fs = new(filePath, FileMode.Create);
-        await e.File.OpenReadStream().CopyToAsync(fs); *@
+        var resizedFile = await e.File.RequestImageFileAsync(e.File.ContentType,100,100);
+        var buf  = new byte[resizedFile.Size];
+
+        using(var stream = resizedFile.OpenReadStream()){
+            await stream.ReadAsync(buf);
+        }
+
+        avatarPreview = "data:image/png;base64,"+ Convert.ToBase64String(buf);
     }
 
 
@@ -126,19 +181,25 @@
 
         if (User is not null)
         {
-            Model = new CreateUserModel { Name = User.Name, Username = User.Username };
+
+            Model = new CreateUserModel { Name = User.Name, Username = User.Username, Password = User.Salt,RoleId = User.RoleId };
+            avatarPreview = User.Avatar is not null ? "\\"+User.Avatar : "/images/blank-avatar.png";
         }
+        else{
+            @* Model = new(); *@
+        }
+        Roles = await _roleRepository.GetList();
     }
 
 
     class CreateUserModel
     {
-        [Required]
+        [Required(ErrorMessage = "Tên tài khoản đang để trống")]
         public string Username { get; set; } = null!;
         public string? Name { get; set; }
         public IBrowserFile? Avatar { get; set; }
-        public Guid RoleId { get; set; }
-        [Required]
+        public Guid? RoleId { get; set; }
+        [Required(ErrorMessage = "Mật khẩu đang để trống")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = "";
 

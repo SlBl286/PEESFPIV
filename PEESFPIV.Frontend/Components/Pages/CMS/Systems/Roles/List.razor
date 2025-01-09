@@ -14,21 +14,21 @@
 
 
 
-<PageTitle>Quản lý nhóm người dùng</PageTitle>
+<PageTitle>Quản lý nhóm tài khoản</PageTitle>
 
 <div class="">
-    <p class="fs-1 fw-semibold">Quản lý nhóm người dùng</p>
+    <p class="fs-1 fw-semibold">Quản lý nhóm tài khoản</p>
     <div class="mb-3">
-        <Button Color="ButtonColor.Success" @onclick="OnShowModalClick" class="me-2">
+        <Button Color="ButtonColor.Success" @onclick="OnShowModalCreateClick" class="me-2">
             <Icon Name="IconName.PlusLg" /> Thêm nhóm
         </Button>
         @if(selectedRoles.Count == 1){
-            <Button Color="ButtonColor.Primary" @onclick="OnShowModalClick" class="me-2">
+            <Button Color="ButtonColor.Primary" @onclick="OnShowModalUpdateClick" class="me-2">
                 <Icon Name="IconName.Pencil" class=""/> Cập nhật thông tin
             </Button>
         }
         @if(selectedRoles.Count >0){
-            <Button Color="ButtonColor.Danger" @onclick="OnShowModalClick" class="">
+            <Button Color="ButtonColor.Danger" @onclick="ShowDeleteConfirmationAsync" class="">
                 <Icon Name="IconName.Trash"/> Xoá
             </Button>
         }
@@ -57,9 +57,9 @@
             SortKeySelector="item => item.Name">
             @context.Name
         </GridColumn>
-        <GridColumn TItem="Role" HeaderText="Mô tả" PropertyName="Description" SortString="NaDescriptionme"
+        <GridColumn TItem="Role" HeaderText="Mô tả" PropertyName="Description" SortString="Description"
             SortKeySelector="item => item.Description" >
-            @context.Name
+            @context.Description
         </GridColumn>
         <GridColumn TItem="Role" HeaderText="Cập nhật lần cuối" PropertyName="UpdatedAt" SortString="UpdatedAt"
             SortKeySelector="item => item.UpdatedAt" >
@@ -67,20 +67,33 @@
         </GridColumn>
     </Grid>
 </div>
-
-<Modal @ref="modal" title="Tạo nhóm" IsVerticallyCentered="true" OnHidden="OnCreateModalHide">
+<ConfirmDialog @ref="dialog" />
+<Modal @ref="modal" title="@addNUpdateModalTitle" IsVerticallyCentered="true" OnHidden="OnCreateModalHide">
     <BodyTemplate>
-        <RoleForm ParentModal="modal" />
+        <RoleForm ParentModal="modal" Role="updateRole" />
     </BodyTemplate>
 </Modal>
 
 @code {
+    [Inject] protected ToastService ToastService { get; set; } = default!;
+    private string addNUpdateModalTitle = "Tạo mới nhóm người dùng";
+
     Grid<Role> grid = default!;
+    private ConfirmDialog dialog = default!;
     private Modal modal = default!;
+    private Role? updateRole = null;
     private HashSet<Role> selectedRoles = new();
 
-    private async Task OnShowModalClick()
+    private async Task OnShowModalCreateClick()
     {
+        addNUpdateModalTitle = "Tạo mới nhóm tài khoản";
+        updateRole = null;
+        await modal.ShowAsync();
+    }
+    private async Task OnShowModalUpdateClick()
+    {
+        addNUpdateModalTitle = "Sửa thông tin nhóm";
+        updateRole = selectedRoles.FirstOrDefault();
         await modal.ShowAsync();
     }
     private async Task OnCreateModalHide (){
@@ -90,6 +103,32 @@
     private async Task OnHideModalClick()
     {
         await modal.HideAsync();
+    }
+    private async Task ShowDeleteConfirmationAsync()
+    {
+        var options = new ConfirmDialogOptions
+            {
+                YesButtonText = "Xoá",
+                YesButtonColor = ButtonColor.Danger,
+                NoButtonText = "Huỷ",
+                NoButtonColor = ButtonColor.Primary
+            };
+
+        var confirmation = await dialog.ShowAsync(
+        title: "Xoá nhóm tài khoản",
+        message1: $"Xác nhận xoá {selectedRoles.Count} nhóm?",
+        confirmDialogOptions: options);
+
+        if (confirmation)
+        {
+            var selectedIds = selectedRoles.Select(u => u.Id).ToList();
+            if (selectedIds is not null)
+            {
+                await _roleRepository.Delete(selectedIds);
+                await grid.RefreshDataAsync();
+                ToastService.Notify(new(ToastType.Success, $"Xoá nhóm tài khoản thành công."));
+            }     
+        }
     }
     private Task OnSelectedItemsChanged(HashSet<Role> roles)
     {

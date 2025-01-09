@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PEESFPIV.Frontend.Databases;
 
@@ -11,9 +12,11 @@ using PEESFPIV.Frontend.Databases;
 namespace PEESFPIV.Frontend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250109090216_Add_SystemConfig")]
+    partial class Add_SystemConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -120,10 +123,6 @@ namespace PEESFPIV.Frontend.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("getdate()");
 
-                    b.Property<string>("EnValue")
-                        .HasMaxLength(2147483645)
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("GroupCode")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -138,14 +137,11 @@ namespace PEESFPIV.Frontend.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("getdate()");
 
-                    b.Property<string>("VnValue")
+                    b.Property<string>("Value")
                         .HasMaxLength(2147483645)
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
 
                     b.ToTable("SystemConfig", (string)null);
                 });

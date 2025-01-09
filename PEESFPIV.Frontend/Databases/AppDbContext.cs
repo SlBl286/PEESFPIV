@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PEESFPIV.Frontend.Models;
 using PEESFPIV.Frontend.Models.Auth;
 using PEESFPIV.Frontend.Utils.Implements;
 using PEESFPIV.Frontend.Utils.Interfaces;
@@ -13,10 +14,10 @@ public class AppDbContext : DbContext
         _hashString = hashString;
     }
 
-    // public DbSet<MenuBar> MenuBars { get; set; }
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
-    public DbSet<UserRole> UserRoles { get; set; }
+    public DbSet<SystemConfig> SystemConfigs { get; set; }
+    public DbSet<Objective> Objectives { get; set; }
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Role> Roles { get; set; } = null!;
 
      protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
