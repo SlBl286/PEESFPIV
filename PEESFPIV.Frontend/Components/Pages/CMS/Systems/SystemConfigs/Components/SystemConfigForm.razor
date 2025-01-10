@@ -31,8 +31,6 @@
 @code {
     private string ErrorMessage = "";
 
-    private string avatarPreview = "/images/blank-avatar.png";
-    private InputFile avatarPickerInput;
     private const string configForm = "system-config-form";
     [SupplyParameterFromForm(FormName = configForm)]
     private CreateConfigModel Model { get; set; } = new();
@@ -104,7 +102,5 @@
         [Required(ErrorMessage = "tên cấu hình đang để trống")]
         public string Name { get; set; } = null!;
         public string? GroupCode { get; set; }
-
-
     }
 }

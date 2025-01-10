@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PEESFPIV.Frontend.Databases;
 
@@ -11,9 +12,11 @@ using PEESFPIV.Frontend.Databases;
 namespace PEESFPIV.Frontend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250110022344_Add_Objective")]
+    partial class Add_Objective
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -104,55 +107,6 @@ namespace PEESFPIV.Frontend.Migrations
                     b.ToTable("User", (string)null);
                 });
 
-            modelBuilder.Entity("PEESFPIV.Frontend.Models.KeyFocus", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("getdate()");
-
-                    b.Property<string>("EnDescription")
-                        .IsRequired()
-                        .HasMaxLength(2147483645)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EnTitle")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Image")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("getdate()");
-
-                    b.Property<string>("VnDescription")
-                        .IsRequired()
-                        .HasMaxLength(2147483645)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VnTitle")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("KeyFocus", (string)null);
-                });
-
             modelBuilder.Entity("PEESFPIV.Frontend.Models.Objective", b =>
                 {
                     b.Property<Guid>("Id")
@@ -195,55 +149,6 @@ namespace PEESFPIV.Frontend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Objective", (string)null);
-                });
-
-            modelBuilder.Entity("PEESFPIV.Frontend.Models.Outcome", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("getdate()");
-
-                    b.Property<string>("EnDescription")
-                        .IsRequired()
-                        .HasMaxLength(2147483645)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EnTitle")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Image")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("getdate()");
-
-                    b.Property<string>("VnDescription")
-                        .IsRequired()
-                        .HasMaxLength(2147483645)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("VnTitle")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Outcome", (string)null);
                 });
 
             modelBuilder.Entity("PEESFPIV.Frontend.Models.SystemConfig", b =>

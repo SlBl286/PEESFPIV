@@ -1,0 +1,139 @@
+@page "/cms/objective"
+@using PEESFPIV.Frontend.Components.Layout;
+@using PEESFPIV.Frontend.Components.Pages.CMS.Objectives.Components;
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
+@using PEESFPIV.Frontend.Models;
+
+@inject IObjectiveRepository  _objectiveRepository
+
+@layout CMSLayout
+<PageTitle>Quản lý Objective</PageTitle>
+
+<div>
+    <p class="fs-1 fw-semibold">Quản lý Objective</p>
+    <div class="mb-3">
+        <Button Color="ButtonColor.Success" @onclick="OnShowModalCreateClick" class="me-2">
+            <Icon Name="IconName.PlusLg" /> Thêm Objective
+        </Button>
+    </div>
+    <Grid @ref="grid" TItem="Objective" Class="table table-hover table-bordered table-striped rounded"
+        DataProvider="ObjectivesDataProvider" FiltersTranslationProvider="GridFiltersTranslationProvider"
+        AllowFiltering="true" AllowPaging="true" PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5,10,20 })" PaginationItemsTextFormat="{0} - {1} trong tổng {2} bản ghi"
+        ItemsPerPageText="bản ghi trên trang" AllowSorting="true" AllowSelection="true"
+        SelectionMode="GridSelectionMode.Multiple" SelectedItemsChanged="OnSelectedItemsChanged"
+        OnRowDoubleClick="OnRowDbClick" AllowRowClick="true" EmptyText="Không có bản ghi nào" Responsive="true">
+             <GridColumn TItem="Objective" HeaderText="STT" PropertyName="Order" SortString="Order"
+            SortKeySelector="item => item.Order" TextAlignment="Alignment.Center" HeaderTextAlignment="Alignment.Center" Filterable="false" Sortable="false">
+            @context.Order
+        </GridColumn>
+        <GridColumn TItem="Objective" HeaderText="Tên (Tiếng việt)" PropertyName="VnName" SortString="VnName"
+            SortKeySelector="item => item.VnName" TextAlignment="Alignment.Start">
+            @context.VnName
+        </GridColumn>
+        <GridColumn TItem="Objective" HeaderText="Tên (English)" PropertyName="EnName" SortString="EnName"
+            SortKeySelector="item => item.EnName" TextAlignment="Alignment.Start">
+            @context.EnName
+        </GridColumn>
+        <GridColumn TItem="Objective" HeaderText="Nội dung (Tiếng việt)" PropertyName="VnDescription"
+            SortString="VnDescription" SortKeySelector="item => item.VnDescription">
+            @context.VnDescription
+        </GridColumn>
+        <GridColumn TItem="Objective" HeaderText="Nội dung (English)" PropertyName="EnDescription"
+            SortString="EnDescription" SortKeySelector="item => item.EnDescription">
+            @context.EnDescription
+        </GridColumn>
+        <GridColumn TItem="Objective" HeaderText="Cập nhật lần cuối" PropertyName="UpdatedAt" SortString="UpdatedAt"
+            SortKeySelector="item => item.UpdatedAt">
+            @(context.UpdatedAt.ToString("dd/MM/yyyy HH:mm"))
+        </GridColumn>
+    </Grid>
+</div>
+<ConfirmDialog @ref="dialog" />
+<Modal @ref="modal"title="@addNUpdateModalTitle" IsVerticallyCentered="true" OnHidden="OnCreateModalHide" Size="ModalSize.Large">
+    <BodyTemplate>
+        <ObjectiveForm ParentModal="modal" Objective="updateObjective" />
+    </BodyTemplate>
+</Modal>
+
+@code {
+    private string addNUpdateModalTitle = "Tạo mới tài khoản";
+    private ConfirmDialog dialog = default!;
+    Grid<Objective> grid = default!;
+    private Modal modal = default!;
+    private HashSet<Objective> selectedObjectives = new();
+    private Objective? updateObjective { get; set; } = null;
+    private async Task OnShowModalCreateClick()
+    {
+        addNUpdateModalTitle = "Tạo mới tài khoản";
+        updateObjective = null;
+        await modal.ShowAsync();
+    }
+    private async Task OnShowModalUpdateClick()
+    {
+        addNUpdateModalTitle = "Cập nhật thông tin người dùng";
+        updateObjective = selectedObjectives.FirstOrDefault();
+        await modal.ShowAsync();
+    }
+    private async Task OnCreateModalHide()
+    {
+        await grid.RefreshDataAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await modal.HideAsync();
+    }
+
+    private Task OnSelectedItemsChanged(HashSet<Objective> objectives)
+    {
+        selectedObjectives = objectives is not null && objectives.Any() ? objectives : new();
+
+        return Task.CompletedTask;
+    }
+    private async Task OnRowDbClick(GridRowEventArgs<Objective> args)
+    {
+        addNUpdateModalTitle = "Cập nhật thông tin người dùng";
+        updateObjective = args.Item;
+        await modal.ShowAsync();
+
+    }
+    private async Task<IEnumerable<FilterOperatorInfo>> GridFiltersTranslationProvider()
+    {
+        var filtersTranslation = new List<FilterOperatorInfo>();
+
+        // number/date/boolean
+        filtersTranslation.Add(new("=", "Bằng", FilterOperator.Equals));
+        filtersTranslation.Add(new("!=", "Khác", FilterOperator.NotEquals));
+        // number/date
+        filtersTranslation.Add(new("<", "Nhỏ hơn", FilterOperator.LessThan));
+        filtersTranslation.Add(new("<=", "Nhỏ hơn hoặc bằng", FilterOperator.LessThanOrEquals));
+        filtersTranslation.Add(new(">", "Lớn hơn", FilterOperator.GreaterThan));
+        filtersTranslation.Add(new(">=", "Lớn hơn hoặc bằng", FilterOperator.GreaterThanOrEquals));
+        // string
+        filtersTranslation.Add(new("*a*", "Chứa từ", FilterOperator.Contains));
+        filtersTranslation.Add(new("!*a*", "Không chứa từ", FilterOperator.DoesNotContain));
+        filtersTranslation.Add(new("a**", "Bắt đầu bằng", FilterOperator.StartsWith));
+        filtersTranslation.Add(new("**a", "Kết thúc bằng", FilterOperator.EndsWith));
+        filtersTranslation.Add(new("=", "Bằng", FilterOperator.Equals));
+        // common
+        filtersTranslation.Add(new("x", "Xoá lọc", FilterOperator.Clear));
+
+        return await Task.FromResult(filtersTranslation);
+    }
+    private async Task<GridDataProviderResult<Objective>> ObjectivesDataProvider(GridDataProviderRequest<Objective> request)
+    {
+        string sortString = "";
+        SortDirection sortDirection = SortDirection.None;
+
+        if (request.Sorting is not null && request.Sorting.Any())
+        {
+            // Note: Multi column sorting is not supported at this moment
+            sortString = request.Sorting.FirstOrDefault()!.SortString;
+            sortDirection = request.Sorting.FirstOrDefault()!.SortDirection;
+        }
+        var result = await _objectiveRepository.GetPagedList(request.PageNumber, request.PageSize, sortString,
+        sortDirection.ToString());
+        return await Task.FromResult(new GridDataProviderResult<Objective> { Data = result.Values, TotalCount = result.Total });
+    }
+}

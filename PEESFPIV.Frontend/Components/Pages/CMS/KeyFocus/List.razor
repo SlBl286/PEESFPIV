@@ -1,0 +1,148 @@
+@page "/cms/keyfocus"
+@using PEESFPIV.Frontend.Components.Layout;
+@using PEESFPIV.Frontend.Components.Pages.CMS.KeyFocus.Components;
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
+@using PEESFPIV.Frontend.Models;
+
+@inject IKeyFocusRepository  _keyfocusRepository
+
+@layout CMSLayout
+<PageTitle>Quản lý KeyFocus</PageTitle>
+
+<div>
+    <p class="fs-1 fw-semibold">Quản lý KeyFocus</p>
+    <div class="mb-3">
+        <Button Color="ButtonColor.Success" @onclick="OnShowModalCreateClick" class="me-2">
+            <Icon Name="IconName.PlusLg" /> Thêm KeyFocus
+        </Button>
+    </div>
+    <Grid @ref="grid" TItem="KeyFocus" Class="table table-hover table-bordered table-striped rounded"
+        DataProvider="KeyFocusDataProvider" FiltersTranslationProvider="GridFiltersTranslationProvider"
+        AllowFiltering="true" AllowPaging="true" PageSizeSelectorVisible="true"
+        PageSizeSelectorItems="@(new int[] { 5,10,20 })" PaginationItemsTextFormat="{0} - {1} trong tổng {2} bản ghi"
+        ItemsPerPageText="bản ghi trên trang" AllowSorting="true" AllowSelection="true"
+        SelectionMode="GridSelectionMode.Multiple" SelectedItemsChanged="OnSelectedItemsChanged"
+        OnRowDoubleClick="OnRowDbClick" AllowRowClick="true" EmptyText="Không có bản ghi nào" Responsive="true">
+             <GridColumn TItem="KeyFocus" HeaderText="STT" PropertyName="Order"
+              TextAlignment="Alignment.Center" HeaderTextAlignment="Alignment.Center" Filterable="false" Sortable="false">
+            @context.Order
+        </GridColumn>
+        <GridColumn TItem="KeyFocus" HeaderText="Tên (Tiếng việt)" PropertyName="VnTitle" SortString="VnTitle"
+            SortKeySelector="item => item.VnTitle" TextAlignment="Alignment.Start">
+            @context.VnTitle
+        </GridColumn>
+        <GridColumn TItem="KeyFocus" HeaderText="Tên (English)" PropertyName="EnTitle" SortString="EnTitle"
+            SortKeySelector="item => item.EnTitle" TextAlignment="Alignment.Start">
+            @context.EnTitle
+        </GridColumn>
+        <GridColumn TItem="KeyFocus" HeaderText="Nội dung (Tiếng việt)" PropertyName="VnDescription"
+            SortString="VnDescription" SortKeySelector="item => item.VnDescription">
+            @context.VnDescription
+        </GridColumn>
+        <GridColumn TItem="KeyFocus" HeaderText="Nội dung (English)" PropertyName="EnDescription"
+            SortString="EnDescription" SortKeySelector="item => item.EnDescription">
+            @context.EnDescription
+        </GridColumn>
+           <GridColumn TItem="KeyFocus" HeaderText="Ảnh" PropertyName="Image"
+             TextAlignment="Alignment.Center" HeaderTextAlignment="Alignment.Center" Filterable="false" Sortable="false">
+             <Image Src="@GetAvatar(context.Image)"  IsThumbnail="true" style="width:100px;height:50px;" class="object-fit-fill rounded boder"  Alt="Image"/> 
+        </GridColumn>
+        <GridColumn TItem="KeyFocus" HeaderText="Cập nhật lần cuối" PropertyName="UpdatedAt" SortString="UpdatedAt"
+            SortKeySelector="item => item.UpdatedAt">
+            @(context.UpdatedAt.ToString("dd/MM/yyyy HH:mm"))
+        </GridColumn>
+    </Grid>
+</div>
+<ConfirmDialog @ref="dialog" />
+<Modal @ref="modal"title="@addNUpdateModalTitle" IsVerticallyCentered="true" OnHidden="OnCreateModalHide" Size="ModalSize.Large">
+    <BodyTemplate>
+        <KeyFocusForm ParentModal="modal" KeyFocus="updateKeyFocus" />
+    </BodyTemplate>
+</Modal>
+
+@code {
+    private string addNUpdateModalTitle = "Tạo mới keyfocus";
+    private ConfirmDialog dialog = default!;
+    Grid<KeyFocus> grid = default!;
+    private Modal modal = default!;
+    private HashSet<KeyFocus> selectedKeyFocuses = new();
+    private KeyFocus? updateKeyFocus { get; set; } = null;
+    private async Task OnShowModalCreateClick()
+    {
+        addNUpdateModalTitle = "Tạo mới keyfocus";
+        updateKeyFocus = null;
+        await modal.ShowAsync();
+    }
+    private string GetAvatar(string? avatarPath)
+    {
+        if (avatarPath is null) return "/images/blank-avatar.png";
+        else return "\\" + avatarPath;
+    }
+    private async Task OnShowModalUpdateClick()
+    {
+        addNUpdateModalTitle = "Cập nhật thông tin KeyFocus";
+        updateKeyFocus = selectedKeyFocuses.FirstOrDefault();
+        await modal.ShowAsync();
+    }
+    private async Task OnCreateModalHide()
+    {
+        await grid.RefreshDataAsync();
+    }
+
+    private async Task OnHideModalClick()
+    {
+        await modal.HideAsync();
+    }
+
+    private Task OnSelectedItemsChanged(HashSet<KeyFocus> keyFocuses)
+    {
+        selectedKeyFocuses = keyFocuses is not null && keyFocuses.Any() ? keyFocuses : new();
+
+        return Task.CompletedTask;
+    }
+    private async Task OnRowDbClick(GridRowEventArgs<KeyFocus> args)
+    {
+        addNUpdateModalTitle = "Cập nhật thông tin KeyFocus";
+        updateKeyFocus = args.Item;
+        await modal.ShowAsync();
+
+    }
+    private async Task<IEnumerable<FilterOperatorInfo>> GridFiltersTranslationProvider()
+    {
+        var filtersTranslation = new List<FilterOperatorInfo>();
+
+        // number/date/boolean
+        filtersTranslation.Add(new("=", "Bằng", FilterOperator.Equals));
+        filtersTranslation.Add(new("!=", "Khác", FilterOperator.NotEquals));
+        // number/date
+        filtersTranslation.Add(new("<", "Nhỏ hơn", FilterOperator.LessThan));
+        filtersTranslation.Add(new("<=", "Nhỏ hơn hoặc bằng", FilterOperator.LessThanOrEquals));
+        filtersTranslation.Add(new(">", "Lớn hơn", FilterOperator.GreaterThan));
+        filtersTranslation.Add(new(">=", "Lớn hơn hoặc bằng", FilterOperator.GreaterThanOrEquals));
+        // string
+        filtersTranslation.Add(new("*a*", "Chứa từ", FilterOperator.Contains));
+        filtersTranslation.Add(new("!*a*", "Không chứa từ", FilterOperator.DoesNotContain));
+        filtersTranslation.Add(new("a**", "Bắt đầu bằng", FilterOperator.StartsWith));
+        filtersTranslation.Add(new("**a", "Kết thúc bằng", FilterOperator.EndsWith));
+        filtersTranslation.Add(new("=", "Bằng", FilterOperator.Equals));
+        // common
+        filtersTranslation.Add(new("x", "Xoá lọc", FilterOperator.Clear));
+
+        return await Task.FromResult(filtersTranslation);
+    }
+    private async Task<GridDataProviderResult<KeyFocus>> KeyFocusDataProvider(GridDataProviderRequest<KeyFocus> request)
+    {
+        string sortString = "";
+        SortDirection sortDirection = SortDirection.None;
+
+        if (request.Sorting is not null && request.Sorting.Any())
+        {
+            // Note: Multi column sorting is not supported at this moment
+            sortString = request.Sorting.FirstOrDefault()!.SortString;
+            sortDirection = request.Sorting.FirstOrDefault()!.SortDirection;
+        }
+        var result = await _keyfocusRepository.GetPagedList(request.PageNumber, request.PageSize, sortString,
+        sortDirection.ToString());
+        return await Task.FromResult(new GridDataProviderResult<KeyFocus> { Data = result.Values, TotalCount = result.Total });
+    }
+}

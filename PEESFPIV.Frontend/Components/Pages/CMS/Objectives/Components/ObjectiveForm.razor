@@ -1,0 +1,126 @@
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
+@using PEESFPIV.Frontend.Models
+@using System.ComponentModel.DataAnnotations
+
+@inject IObjectiveRepository _objectiveRepository;
+@inject ToastService _toastService;
+
+<EditForm Model="Model" method="Post" OnValidSubmit="CreateOrUpdateAsync" FormName="@objectiveForm" class="row gy-2">
+    <DataAnnotationsValidator />
+    <div class="col-6">
+        <label class="form-label">Tiêu đề (Tiếng việt) <span class="text-danger">*</span></label>
+        <InputText @bind-Value="Model.VnName" class="form-control" disabled="@(Objective is not null)"
+            readonly="@(Objective is not null)" />
+        <ValidationMessage For="()=>Model.VnName" class="text-danger" />
+    </div>
+    <div class="col-6">
+        <label class="form-label">Tiêu đề (English)</label>
+        <InputText @bind-Value="Model.EnName" class="form-control" />
+        <ValidationMessage For="()=>Model.EnName" class="text-danger" />
+
+    </div>
+    <div class="col-6">
+        <label class="form-label">Nội dung (Tiếng việt)</label>
+        <InputTextArea @bind-Value="Model.VnDescription" class="form-control" />
+        <ValidationMessage For="()=>Model.VnDescription" class="text-danger" />
+
+    </div>
+    <div class="col-6">
+        <label class="form-label">Nội dung (English)</label>
+        <InputTextArea @bind-Value="Model.EnDescription" class="form-control" />
+        <ValidationMessage For="()=>Model.EnDescription" class="text-danger" />
+
+    </div>
+    <div class="col-12">
+        <label class="form-label">Thứ tự</label>
+        <InputNumber @bind-Value="Model.Order" class="form-control" />
+        <ValidationMessage For="()=>Model.Order" class="text-danger" />
+
+    </div>
+    <div class="col mt-2 align-self-end">
+        <Button Color="ButtonColor.Secondary" @onclick="async ()=>{await ParentModal.HideAsync();}">Đóng</Button>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit">Lưu</Button>
+    </div>
+</EditForm>
+
+
+@code {
+    private string ErrorMessage = "";
+    private const string objectiveForm = "objective-form";
+    [SupplyParameterFromForm(FormName = objectiveForm)]
+    private CreateObjectiveModel Model { get; set; } = new();
+    [Parameter]
+    public Modal ParentModal { get; set; } = default!;
+    [Parameter]
+    public Objective? Objective { get; set; }
+    private async Task CreateOrUpdateAsync()
+    {
+        ErrorMessage = "";
+        if (Objective is not null)
+        {
+
+            Objective.VnName = Model.VnName;
+            Objective.EnName = Model.EnName;
+            Objective.VnDescription = Model.VnDescription;
+            Objective.VnDescription = Model.EnDescription;
+            Objective.Order = Model.Order;
+            await _objectiveRepository.Update(Objective);
+            await ParentModal.HideAsync();
+            _toastService.Notify(new(ToastType.Success, $"Cập nhật objective [{Objective.VnName}] thành công."));
+
+        }
+        else
+        {
+
+            var objective = new Objective
+                {
+                    Id = Guid.NewGuid(),
+                    VnName = Model.VnName,
+                    EnName = Model.EnName,
+                    VnDescription = Model.VnDescription,
+                    EnDescription = Model.EnDescription,
+                    Order = Model.Order
+                };
+            await _objectiveRepository.Add(objective);
+            await ParentModal.HideAsync();
+            _toastService.Notify(new(ToastType.Success, $"Tạo mới Objecttive [{objective.VnName}] thành công."));
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.CompletedTask;
+
+        if (Objective is not null)
+        {
+
+            Model = new CreateObjectiveModel
+                {
+                    VnName = Objective.VnName,
+                    EnDescription = Objective.EnDescription,
+                    VnDescription = Objective.VnDescription,
+                    EnName = Objective.EnName,
+                    Order = Objective.Order
+                };
+        }
+        else
+        {
+            Model = new();
+        }
+    }
+
+
+    class CreateObjectiveModel
+    {
+        [Required(ErrorMessage = "Tên tiếng việt đang để trống")]
+        public string VnName { get; set; } = null!;
+        [Required(ErrorMessage = "Tên tiếng anh đang để trống")]
+        public string EnName { get; set; } = null!;
+        [Required(ErrorMessage = "Nội dung tiếng việt đang để trống")]
+        public string VnDescription { get; set; } = null!;
+        [Required(ErrorMessage = "Nội dung tiếng anh đang để trống")]
+        public string EnDescription { get; set; } = null!;
+        [Required(ErrorMessage = "thứ tự đang để trống")]
+        public int Order { get; set; }
+    }
+}

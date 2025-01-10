@@ -16,7 +16,6 @@
         <label class="form-label col-12">Ảnh đại diện</label>
             <Image src="@avatarPreview" @onclick="OnImageClick" class="object-fit-fill rounded boder avatar-picker" IsThumbnail="true"  style="width:100px;height:100px;" alt="avatar" />
         <InputFile OnChange="UploadFile" @ref="avatarPickerInput" class="form-control" accept=".jpg,.png,.jpeg,.svg,.webp" hidden />
-
     </div>
     <div class="col-12">
         <label class="form-label">Tên tài khoản <span class="text-danger">*</span></label>
@@ -58,7 +57,7 @@
     private string ErrorMessage = "";
 
     private string avatarPreview = "/images/blank-avatar.png";
-    private InputFile avatarPickerInput;
+    private InputFile avatarPickerInput {get;set;} = null!;
     private const string userForm = "user-form";
     [SupplyParameterFromForm(FormName = userForm)]
     private CreateUserModel Model { get; set; } = new();

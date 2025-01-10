@@ -45,7 +45,7 @@
         SelectionMode="GridSelectionMode.Multiple" SelectedItemsChanged="OnSelectedItemsChanged"
         OnRowDoubleClick="OnRowDbClick" AllowRowClick="true" EmptyText="Không có bản ghi nào" Responsive="true">
         <GridColumn TItem="User" HeaderText="Tên tài khoản" PropertyName="Username" SortString="Username"
-            SortKeySelector="item => item.Username">
+            SortKeySelector="item => item.Username" >
             <Image Src="@GetAvatar(context.Avatar)"  IsThumbnail="true" style="width:50px;height:50px;" class="object-fit-fill rounded boder"  Alt="@context.Username"/> 
             @context.Username
         </GridColumn>

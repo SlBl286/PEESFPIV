@@ -6,20 +6,18 @@ using PEESFPIV.Frontend.Utils.Interfaces;
 
 namespace PEESFPIV.Frontend.Databases;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    private readonly IHashString _hashString;
-    public AppDbContext(DbContextOptions<AppDbContext> options, IHashString hashString) : base(options)
-    {
-        _hashString = hashString;
-    }
 
-    public DbSet<SystemConfig> SystemConfigs { get; set; }
-    public DbSet<Objective> Objectives { get; set; }
+    public DbSet<SystemConfig> SystemConfigs { get; set; } = null!;
+    public DbSet<Objective> Objectives { get; set; } = null!;
+    public DbSet<KeyFocus> KeyFocuses { get; set; } = null!;
+    public DbSet<Outcome> Outcomes { get; set; } = null!;
+
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Role> Roles { get; set; } = null!;
 
-     protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
         .ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
