@@ -17,6 +17,8 @@ public static class DependencyInjection
         services.AddScoped<ISystemConfigRepository, SystemConfigRepository>();
         services.AddScoped<IObjectiveRepository, ObjectiveRepository>();
         services.AddScoped<IKeyFocusRepository, KeyFocusRepository>();
+        services.AddScoped<IOutcomeRepository, OutcomeRepository>();
+        services.AddScoped<IPartnerRepository, PartnerRepository>();
 
         return services;
     }

@@ -1,53 +1,53 @@
 @page "/cms/outcome"
 @using PEESFPIV.Frontend.Components.Layout;
-@using PEESFPIV.Frontend.Components.Pages.CMS.KeyFocus.Components;
+@using PEESFPIV.Frontend.Components.Pages.CMS.Outcome.Components;
 @using PEESFPIV.Frontend.Databases.Repositories.Interfaces
 @using PEESFPIV.Frontend.Models;
 
-@inject IKeyFocusRepository  _keyfocusRepository
+@inject IOutcomeRepository _outcomeRepository;
 
 @layout CMSLayout
-<PageTitle>Quản lý KeyFocus</PageTitle>
+<PageTitle>Quản lý Outcome</PageTitle>
 
 <div>
-    <p class="fs-1 fw-semibold">Quản lý KeyFocus</p>
+    <p class="fs-1 fw-semibold">Quản lý Outcome</p>
     <div class="mb-3">
         <Button Color="ButtonColor.Success" @onclick="OnShowModalCreateClick" class="me-2">
-            <Icon Name="IconName.PlusLg" /> Thêm KeyFocus
+            <Icon Name="IconName.PlusLg" /> Thêm Outcome
         </Button>
     </div>
-    <Grid @ref="grid" TItem="KeyFocus" Class="table table-hover table-bordered table-striped rounded"
+    <Grid @ref="grid" TItem="Outcome" Class="table table-hover table-bordered table-striped rounded"
         DataProvider="KeyFocusDataProvider" FiltersTranslationProvider="GridFiltersTranslationProvider"
         AllowFiltering="true" AllowPaging="true" PageSizeSelectorVisible="true"
         PageSizeSelectorItems="@(new int[] { 5,10,20 })" PaginationItemsTextFormat="{0} - {1} trong tổng {2} bản ghi"
         ItemsPerPageText="bản ghi trên trang" AllowSorting="true" AllowSelection="true"
         SelectionMode="GridSelectionMode.Multiple" SelectedItemsChanged="OnSelectedItemsChanged"
         OnRowDoubleClick="OnRowDbClick" AllowRowClick="true" EmptyText="Không có bản ghi nào" Responsive="true">
-             <GridColumn TItem="KeyFocus" HeaderText="STT" PropertyName="Order"
+             <GridColumn TItem="Outcome" HeaderText="STT" PropertyName="Order"
               TextAlignment="Alignment.Center" HeaderTextAlignment="Alignment.Center" Filterable="false" Sortable="false">
             @context.Order
         </GridColumn>
-        <GridColumn TItem="KeyFocus" HeaderText="Tên (Tiếng việt)" PropertyName="VnTitle" SortString="VnTitle"
+        <GridColumn TItem="Outcome" HeaderText="Tên (Tiếng việt)" PropertyName="VnTitle" SortString="VnTitle"
             SortKeySelector="item => item.VnTitle" TextAlignment="Alignment.Start">
             @context.VnTitle
         </GridColumn>
-        <GridColumn TItem="KeyFocus" HeaderText="Tên (English)" PropertyName="EnTitle" SortString="EnTitle"
+        <GridColumn TItem="Outcome" HeaderText="Tên (English)" PropertyName="EnTitle" SortString="EnTitle"
             SortKeySelector="item => item.EnTitle" TextAlignment="Alignment.Start">
             @context.EnTitle
         </GridColumn>
-        <GridColumn TItem="KeyFocus" HeaderText="Nội dung (Tiếng việt)" PropertyName="VnDescription"
+        <GridColumn TItem="Outcome" HeaderText="Nội dung (Tiếng việt)" PropertyName="VnDescription"
             SortString="VnDescription" SortKeySelector="item => item.VnDescription">
             @context.VnDescription
         </GridColumn>
-        <GridColumn TItem="KeyFocus" HeaderText="Nội dung (English)" PropertyName="EnDescription"
+        <GridColumn TItem="Outcome" HeaderText="Nội dung (English)" PropertyName="EnDescription"
             SortString="EnDescription" SortKeySelector="item => item.EnDescription">
             @context.EnDescription
         </GridColumn>
-           <GridColumn TItem="KeyFocus" HeaderText="Ảnh" PropertyName="Image"
+           <GridColumn TItem="Outcome" HeaderText="Ảnh" PropertyName="Image"
              TextAlignment="Alignment.Center" HeaderTextAlignment="Alignment.Center" Filterable="false" Sortable="false">
              <Image Src="@GetAvatar(context.Image)"  IsThumbnail="true" style="width:100px;height:50px;" class="object-fit-fill rounded boder"  Alt="Image"/> 
         </GridColumn>
-        <GridColumn TItem="KeyFocus" HeaderText="Cập nhật lần cuối" PropertyName="UpdatedAt" SortString="UpdatedAt"
+        <GridColumn TItem="Outcome" HeaderText="Cập nhật lần cuối" PropertyName="UpdatedAt" SortString="UpdatedAt"
             SortKeySelector="item => item.UpdatedAt">
             @(context.UpdatedAt.ToString("dd/MM/yyyy HH:mm"))
         </GridColumn>
@@ -56,32 +56,32 @@
 <ConfirmDialog @ref="dialog" />
 <Modal @ref="modal"title="@addNUpdateModalTitle" IsVerticallyCentered="true" OnHidden="OnCreateModalHide" Size="ModalSize.Large">
     <BodyTemplate>
-        <KeyFocusForm ParentModal="modal" KeyFocus="updateKeyFocus" />
+        <OutcomeForm ParentModal="modal" Outcome="updateOutcome" />
     </BodyTemplate>
 </Modal>
 
 @code {
-    private string addNUpdateModalTitle = "Tạo mới keyfocus";
+    private string addNUpdateModalTitle = "Tạo mới Outcome";
     private ConfirmDialog dialog = default!;
-    Grid<KeyFocus> grid = default!;
+    Grid<Outcome> grid = default!;
     private Modal modal = default!;
-    private HashSet<KeyFocus> selectedKeyFocuses = new();
-    private KeyFocus? updateKeyFocus { get; set; } = null;
+    private HashSet<Outcome> selectedKeyOutcomes = new();
+    private Outcome? updateOutcome { get; set; } = null;
     private async Task OnShowModalCreateClick()
     {
-        addNUpdateModalTitle = "Tạo mới keyfocus";
-        updateKeyFocus = null;
+        addNUpdateModalTitle = "Tạo mới Outcome";
+        updateOutcome = null;
         await modal.ShowAsync();
     }
     private string GetAvatar(string? avatarPath)
     {
-        if (avatarPath is null) return "/images/blank-avatar.png";
+        if (avatarPath is null) return "/images/blank-image.jpg";
         else return "\\" + avatarPath;
     }
     private async Task OnShowModalUpdateClick()
     {
-        addNUpdateModalTitle = "Cập nhật thông tin KeyFocus";
-        updateKeyFocus = selectedKeyFocuses.FirstOrDefault();
+        addNUpdateModalTitle = "Cập nhật thông tin Outcome";
+        updateOutcome = selectedKeyOutcomes.FirstOrDefault();
         await modal.ShowAsync();
     }
     private async Task OnCreateModalHide()
@@ -94,16 +94,16 @@
         await modal.HideAsync();
     }
 
-    private Task OnSelectedItemsChanged(HashSet<KeyFocus> keyFocuses)
+    private Task OnSelectedItemsChanged(HashSet<Outcome> outcomes)
     {
-        selectedKeyFocuses = keyFocuses is not null && keyFocuses.Any() ? keyFocuses : new();
+        selectedKeyOutcomes = outcomes is not null && outcomes.Any() ? outcomes : new();
 
         return Task.CompletedTask;
     }
-    private async Task OnRowDbClick(GridRowEventArgs<KeyFocus> args)
+    private async Task OnRowDbClick(GridRowEventArgs<Outcome> args)
     {
-        addNUpdateModalTitle = "Cập nhật thông tin KeyFocus";
-        updateKeyFocus = args.Item;
+        addNUpdateModalTitle = "Cập nhật thông tin Outcome";
+        updateOutcome = args.Item;
         await modal.ShowAsync();
 
     }
@@ -130,7 +130,7 @@
 
         return await Task.FromResult(filtersTranslation);
     }
-    private async Task<GridDataProviderResult<KeyFocus>> KeyFocusDataProvider(GridDataProviderRequest<KeyFocus> request)
+    private async Task<GridDataProviderResult<Outcome>> KeyFocusDataProvider(GridDataProviderRequest<Outcome> request)
     {
         string sortString = "";
         SortDirection sortDirection = SortDirection.None;
@@ -141,8 +141,8 @@
             sortString = request.Sorting.FirstOrDefault()!.SortString;
             sortDirection = request.Sorting.FirstOrDefault()!.SortDirection;
         }
-        var result = await _keyfocusRepository.GetPagedList(request.PageNumber, request.PageSize, sortString,
+        var result = await _outcomeRepository.GetPagedList(request.PageNumber, request.PageSize, sortString,
         sortDirection.ToString());
-        return await Task.FromResult(new GridDataProviderResult<KeyFocus> { Data = result.Values, TotalCount = result.Total });
+        return await Task.FromResult(new GridDataProviderResult<Outcome> { Data = result.Values, TotalCount = result.Total });
     }
 }

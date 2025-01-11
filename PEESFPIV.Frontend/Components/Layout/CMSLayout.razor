@@ -60,56 +60,51 @@
     private IEnumerable<NavItem> GetNavItems()
     {
         navItems = new List<NavItem>
-{
-new NavItem { Id = "1", Href = "/CMS", IconName = IconName.Activity, Text = "Dashboard", Match=NavLinkMatch.All},
-new NavItem { Id = "2", IconName = IconName.ImageAlt, Text = "Thư viện ảnh" },
-new NavItem { Id = "3", Href = "/cms/PhotoGroup", IconName = IconName.Images, Text = "Nhóm ảnh", ParentId="2" },
-new NavItem { Id = "4", Href = "/cms/photo", IconName = IconName.Image, Text = "Tất cả ảnh", ParentId="2"},
-new NavItem { Id = "5" ,IconName = IconName.House, Text = "Trang chủ", },
-new NavItem { Id = "6", Href = "/cms/objective", IconName = IconName.App, Text = "Objective", ParentId="5" },
-new NavItem { Id = "7", Href = "/cms/keyfocus", IconName = IconName.Key, Text = "KeyFocus", ParentId="5" },
-new NavItem { Id = "8", Href = "/cms/outcome", IconName = IconName.Outlet, Text = "Outcome", ParentId="5" },
+        {
 
-    @* new NavItem { Id = "6", Href = "/cms/event", IconName = IconName.CalendarEvent, Text = "Sự kiện", },
-            new NavItem { Id = "7", Href = "/cms/people", IconName = IconName.FilePerson, Text = "Con người", },
-            new NavItem { Id = "8", Href = "/cms/companies", IconName = IconName.Building, Text = "Công ty", },
-            new NavItem { Id = "9", IconName = IconName.TrainFront, Text = "Đào tạo", },
-            new NavItem { Id = "10", Href = "/cms/photo", IconName = IconName.Image, Text = "Khoá đào tạo", ParentId="9"},
-            new NavItem { Id = "11", Href = "/cms/photo", IconName = IconName.Image, Text = "Tài liệu đào tạo", ParentId="9"},
-            new NavItem { Id = "12", IconName = IconName.Pencil, Text = "Ngiên cứu", }, *@
-new NavItem { Id = "100", IconName = IconName.Gear, Text = "Hệ thống" },
-new NavItem { Id = "101", Href = "/cms/users", IconName = IconName.Person, Text = "Tài khoản", ParentId="100" },
-new NavItem { Id = "102", Href = "/cms/roles", IconName = IconName.People, Text = "Nhóm tài khoản", ParentId="100"},
-new NavItem { Id = "103", Href = "/cms/systemconfig", IconName = IconName.Wifi, Text = "Cấu hình chung",
-ParentId="100"},
-};
+            new NavItem { Id = "1", Href = "/cms/systemconfig", IconName = IconName.Wifi, Text = "Cấu hình chung",},
+
+            new NavItem { Id = "2", IconName = IconName.ImageAlt, Text = "Thư viện ảnh", Match=NavLinkMatch.Prefix},
+            new NavItem { Id = "3", Href = "/cms/PhotoGroup", IconName = IconName.Images, Text = "Nhóm ảnh", ParentId="2" },
+            new NavItem { Id = "4", Href = "/cms/photo", IconName = IconName.Image, Text = "Tất cả ảnh", ParentId="2"},
+
+            new NavItem { Id = "5" ,IconName = IconName.House, Text = "Trang chủ",  Match=NavLinkMatch.Prefix},
+            new NavItem { Id = "6", Href = "/cms/objective", IconName = IconName.App, Text = "Objective", ParentId="5" },
+            new NavItem { Id = "7", Href = "/cms/keyfocus", IconName = IconName.Key, Text = "KeyFocus", ParentId="5" },
+            new NavItem { Id = "8", Href = "/cms/outcome", IconName = IconName.Outlet, Text = "Outcome", ParentId="5" },
+            new NavItem { Id = "9", Href = "/cms/partner", IconName = IconName.Paragraph, Text = "Partner", ParentId="5" },
+
+            new NavItem { Id = "100", IconName = IconName.Gear, Text = "Hệ thống" },
+            new NavItem { Id = "101", Href = "/cms/users", IconName = IconName.Person, Text = "Tài khoản", ParentId="100" },
+            new NavItem { Id = "102", Href = "/cms/roles", IconName = IconName.People, Text = "Nhóm tài khoản", ParentId="100"},
+            new NavItem { Id = "103", Href = "/cms/systemfunction", IconName = IconName.People, Text = "Chức năng hệ thống", ParentId="100"},
+        };
 
         return navItems;
     }
 
 }
-
 <style>
-    :root {
-        --bb-sidebar-width: 270px;
-        --bb-sidebar-collapsed-width: 50px;
-        --bb-sidebar-background-color: rgba(234, 234, 234, 1);
-        --bb-sidebar-top-row-background-color: rgba(0, 0, 0, 0.08);
-        --bb-sidebar-top-row-border-color: rgb(194, 192, 192);
-        --bb-sidebar-title-text-color: rgb(0, 0, 0);
-        --bb-sidebar-brand-icon-color: #6f42c1;
-        --bb-sidebar-brand-image-width: 24px;
-        --bb-sidebar-brand-image-height: 24px;
-        --bb-sidebar-title-badge-text-color: rgb(255, 255, 255);
-        --bb-sidebar-title-badge-background-color: rgba(25, 135, 84, var(--bs-bg-opacity, 1));
-        --bb-sidebar-navbar-toggler-icon-color: rgb(0, 0, 0);
-        --bb-sidebar-navbar-toggler-background-color: rgba(0, 0, 0, 0.08);
-        --bb-sidebar-content-border-color: rgb(194, 192, 192);
-        --bb-sidebar-nav-item-text-color: rgba(0, 0, 0, 0.9);
-        --bb-sidebar-nav-item-text-active-color-rgb: 0, 0, 0;
-        --bb-sidebar-nav-item-text-hover-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb), 0.9);
-        --bb-sidebar-nav-item-text-active-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb), 0.9);
-        --bb-sidebar-nav-item-background-hover-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb), 0.08);
-        --bb-sidebar-nav-item-group-background-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb), 0.08);
-    }
+:root {
+    --bb-sidebar-width: 270px;
+    --bb-sidebar-collapsed-width: 50px;
+    --bb-sidebar-background-color: rgba(234, 234, 234, 1);
+    --bb-sidebar-top-row-background-color: rgba(0, 0, 0, 0.08);
+    --bb-sidebar-top-row-border-color: rgb(194, 192, 192);
+    --bb-sidebar-title-text-color: rgb(0, 0, 0);
+    --bb-sidebar-brand-icon-color: #365ee4;
+    --bb-sidebar-brand-image-width: 24px;
+    --bb-sidebar-brand-image-height: 24px;
+    --bb-sidebar-title-badge-text-color: rgb(255, 255, 255);
+    --bb-sidebar-title-badge-background-color: rgba(25, 135, 84, var(--bs-bg-opacity, 1));
+    --bb-sidebar-navbar-toggler-icon-color: rgb(0, 0, 0);
+    --bb-sidebar-navbar-toggler-background-color: rgba(0, 0, 0, 0.08);
+    --bb-sidebar-content-border-color: rgb(194, 192, 192);
+    --bb-sidebar-nav-item-text-color: rgba(0, 0, 0, 0.9);
+    --bb-sidebar-nav-item-text-active-color-rgb: 0, 90, 0;
+    --bb-sidebar-nav-item-text-hover-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb), 0.9);
+    --bb-sidebar-nav-item-text-active-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb), 0.95);
+    --bb-sidebar-nav-item-background-hover-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb), 0.09);
+    --bb-sidebar-nav-item-group-background-color: rgba(var(--bb-sidebar-nav-item-text-active-color-rgb), 0.08);
+}
 </style>

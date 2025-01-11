@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Objective> Objectives { get; set; } = null!;
     public DbSet<KeyFocus> KeyFocuses { get; set; } = null!;
     public DbSet<Outcome> Outcomes { get; set; } = null!;
+    public DbSet<Partner> Partners { get; set; } = null!;
 
     public DbSet<User> Users { get; set; } = null!;
     public DbSet<Role> Roles { get; set; } = null!;
