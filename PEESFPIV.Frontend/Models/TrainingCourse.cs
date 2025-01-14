@@ -1,12 +1,14 @@
 namespace PEESFPIV.Frontend.Models;
 
-public class TrainingCourse
+public class TrainingCourse : BaseModel
 {
-    public Guid Id { get; set; }
-    public string? Name { get; set; }
-    public string? Address { get; set; }
+    public string? VnTitle{ get; set; }
+    public string? EnTitle { get; set; }
+    public string? VnAddress { get; set; }
+    public string? EnAddress { get; set; }
     public DateTime EventDate { get; set; }
-    public string? Avatar { get; set; }
+    public string? Image { get; set; }
     public string? Link { get; set; }
     public int NumOfParticipation { get; set; }
+    public int Order { get; set; }
 }

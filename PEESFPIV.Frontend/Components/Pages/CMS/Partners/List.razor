@@ -1,10 +1,10 @@
 @page "/cms/partner"
 @using PEESFPIV.Frontend.Components.Layout;
-@using PEESFPIV.Frontend.Components.Pages.CMS.Outcome.Components;
+@using PEESFPIV.Frontend.Components.Pages.CMS.Partners.Components;
 @using PEESFPIV.Frontend.Databases.Repositories.Interfaces
 @using PEESFPIV.Frontend.Models;
 
-@inject IOutcomeRepository _outcomeRepository;
+@inject IPartnerRepository _partnerRepository;
 
 @layout CMSLayout
 <PageTitle>Quản lý Partner</PageTitle>
@@ -16,38 +16,30 @@
             <Icon Name="IconName.PlusLg" /> Thêm Partner
         </Button>
     </div>
-    <Grid @ref="grid" TItem="Outcome" Class="table table-hover table-bordered table-striped rounded"
-        DataProvider="KeyFocusDataProvider" FiltersTranslationProvider="GridFiltersTranslationProvider"
+    <Grid @ref="grid" TItem="Partner" Class="table table-hover table-bordered table-striped rounded"
+        DataProvider="PartnerDataProvider" FiltersTranslationProvider="GridFiltersTranslationProvider"
         AllowFiltering="true" AllowPaging="true" PageSizeSelectorVisible="true"
         PageSizeSelectorItems="@(new int[] { 5,10,20 })" PaginationItemsTextFormat="{0} - {1} trong tổng {2} bản ghi"
         ItemsPerPageText="bản ghi trên trang" AllowSorting="true" AllowSelection="true"
         SelectionMode="GridSelectionMode.Multiple" SelectedItemsChanged="OnSelectedItemsChanged"
         OnRowDoubleClick="OnRowDbClick" AllowRowClick="true" EmptyText="Không có bản ghi nào" Responsive="true">
-             <GridColumn TItem="Outcome" HeaderText="STT" PropertyName="Order"
+             <GridColumn TItem="Partner" HeaderText="STT" PropertyName="Order"
               TextAlignment="Alignment.Center" HeaderTextAlignment="Alignment.Center" Filterable="false" Sortable="false">
             @context.Order
         </GridColumn>
-        <GridColumn TItem="Outcome" HeaderText="Tên (Tiếng việt)" PropertyName="VnTitle" SortString="VnTitle"
-            SortKeySelector="item => item.VnTitle" TextAlignment="Alignment.Start">
-            @context.VnTitle
+        <GridColumn TItem="Partner" HeaderText="Tên (Tiếng việt)" PropertyName="VnName" SortString="VnName"
+            SortKeySelector="item => item.VnName" TextAlignment="Alignment.Start">
+            @context.VnName
         </GridColumn>
-        <GridColumn TItem="Outcome" HeaderText="Tên (English)" PropertyName="EnTitle" SortString="EnTitle"
-            SortKeySelector="item => item.EnTitle" TextAlignment="Alignment.Start">
-            @context.EnTitle
+        <GridColumn TItem="Partner" HeaderText="Tên (English)" PropertyName="EnName" SortString="EnEnNameTitle"
+            SortKeySelector="item => item.EnName" TextAlignment="Alignment.Start">
+            @context.EnName
         </GridColumn>
-        <GridColumn TItem="Outcome" HeaderText="Nội dung (Tiếng việt)" PropertyName="VnDescription"
-            SortString="VnDescription" SortKeySelector="item => item.VnDescription">
-            @context.VnDescription
-        </GridColumn>
-        <GridColumn TItem="Outcome" HeaderText="Nội dung (English)" PropertyName="EnDescription"
-            SortString="EnDescription" SortKeySelector="item => item.EnDescription">
-            @context.EnDescription
-        </GridColumn>
-           <GridColumn TItem="Outcome" HeaderText="Ảnh" PropertyName="Image"
+        <GridColumn TItem="Partner" HeaderText="Ảnh" PropertyName="Image"
              TextAlignment="Alignment.Center" HeaderTextAlignment="Alignment.Center" Filterable="false" Sortable="false">
              <Image Src="@GetAvatar(context.Image)"  IsThumbnail="true" style="width:100px;height:50px;" class="object-fit-fill rounded boder"  Alt="Image"/> 
         </GridColumn>
-        <GridColumn TItem="Outcome" HeaderText="Cập nhật lần cuối" PropertyName="UpdatedAt" SortString="UpdatedAt"
+        <GridColumn TItem="Partner" HeaderText="Cập nhật lần cuối" PropertyName="UpdatedAt" SortString="UpdatedAt"
             SortKeySelector="item => item.UpdatedAt">
             @(context.UpdatedAt.ToString("dd/MM/yyyy HH:mm"))
         </GridColumn>
@@ -56,21 +48,21 @@
 <ConfirmDialog @ref="dialog" />
 <Modal @ref="modal"title="@addNUpdateModalTitle" IsVerticallyCentered="true" OnHidden="OnCreateModalHide" Size="ModalSize.Large">
     <BodyTemplate>
-        <OutcomeForm ParentModal="modal" Outcome="updateOutcome" />
+        <PartnerForm ParentModal="modal" Partner="updatePartner" />
     </BodyTemplate>
 </Modal>
 
 @code {
-    private string addNUpdateModalTitle = "Tạo mới Outcome";
+    private string addNUpdateModalTitle = "Tạo mới Partner";
     private ConfirmDialog dialog = default!;
-    Grid<Outcome> grid = default!;
+    Grid<Partner> grid = default!;
     private Modal modal = default!;
-    private HashSet<Outcome> selectedKeyOutcomes = new();
-    private Outcome? updateOutcome { get; set; } = null;
+    private HashSet<Partner> selectedPartners = new();
+    private Partner? updatePartner { get; set; } = null;
     private async Task OnShowModalCreateClick()
     {
         addNUpdateModalTitle = "Tạo mới Partner";
-        updateOutcome = null;
+        updatePartner = null;
         await modal.ShowAsync();
     }
     private string GetAvatar(string? avatarPath)
@@ -81,7 +73,7 @@
     private async Task OnShowModalUpdateClick()
     {
         addNUpdateModalTitle = "Cập nhật thông tin Partner";
-        updateOutcome = selectedKeyOutcomes.FirstOrDefault();
+        updatePartner = selectedPartners.FirstOrDefault();
         await modal.ShowAsync();
     }
     private async Task OnCreateModalHide()
@@ -94,16 +86,16 @@
         await modal.HideAsync();
     }
 
-    private Task OnSelectedItemsChanged(HashSet<Outcome> outcomes)
+    private Task OnSelectedItemsChanged(HashSet<Partner> partners)
     {
-        selectedKeyOutcomes = outcomes is not null && outcomes.Any() ? outcomes : new();
+        selectedPartners = partners is not null && partners.Any() ? partners : new();
 
         return Task.CompletedTask;
     }
-    private async Task OnRowDbClick(GridRowEventArgs<Outcome> args)
+    private async Task OnRowDbClick(GridRowEventArgs<Partner> args)
     {
-        addNUpdateModalTitle = "Cập nhật thông tin Outcome";
-        updateOutcome = args.Item;
+        addNUpdateModalTitle = "Cập nhật thông tin Partner";
+        updatePartner = args.Item;
         await modal.ShowAsync();
 
     }
@@ -130,7 +122,7 @@
 
         return await Task.FromResult(filtersTranslation);
     }
-    private async Task<GridDataProviderResult<Outcome>> KeyFocusDataProvider(GridDataProviderRequest<Outcome> request)
+    private async Task<GridDataProviderResult<Partner>> PartnerDataProvider(GridDataProviderRequest<Partner> request)
     {
         string sortString = "";
         SortDirection sortDirection = SortDirection.None;
@@ -141,8 +133,8 @@
             sortString = request.Sorting.FirstOrDefault()!.SortString;
             sortDirection = request.Sorting.FirstOrDefault()!.SortDirection;
         }
-        var result = await _outcomeRepository.GetPagedList(request.PageNumber, request.PageSize, sortString,
+        var result = await _partnerRepository.GetPagedList(request.PageNumber, request.PageSize, sortString,
         sortDirection.ToString());
-        return await Task.FromResult(new GridDataProviderResult<Outcome> { Data = result.Values, TotalCount = result.Total });
+        return await Task.FromResult(new GridDataProviderResult<Partner> { Data = result.Values, TotalCount = result.Total });
     }
 }

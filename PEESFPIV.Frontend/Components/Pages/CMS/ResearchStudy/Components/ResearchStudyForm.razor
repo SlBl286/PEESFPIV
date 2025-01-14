@@ -1,0 +1,197 @@
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
+@using PEESFPIV.Frontend.Models
+@using System.ComponentModel.DataAnnotations
+
+@inject IJSRuntime js;
+@inject IWebHostEnvironment _env;
+@inject IResearchStudyRepository  _researchStudyRepository;
+@inject ToastService _toastService;
+
+<EditForm Model="Model" method="Post" OnValidSubmit="CreateOrUpdateAsync" FormName="@ResearchStudiesForm" class="row gy-2">
+    <DataAnnotationsValidator />
+    <div class="col-12 text-center">
+        <label class="form-label col-12">Ảnh Banner</label>
+            <Image src="@avatarPreview" @onclick="OnImageClick" class="object-fit-contain rounded boder avatar-picker" IsThumbnail="true"  style="width:300px;height:150px;" alt="avatar" />
+        <InputFile OnChange="UploadFile" @ref="avatarPickerInput" class="form-control" accept=".jpg,.png,.jpeg,.svg,.webp" hidden />
+    </div>
+    <div class="col-6">
+        <label class="form-label">Tiêu đề (Tiếng việt) <span class="text-danger">*</span></label>
+        <InputText @bind-Value="Model.VnTitle" class="form-control" disabled="@(ResearchStudy is not null)"
+            readonly="@(ResearchStudy is not null)" />
+        <ValidationMessage For="()=>Model.VnTitle" class="text-danger" />
+    </div>
+    <div class="col-6">
+        <label class="form-label">Tiêu đề (English)</label>
+        <InputText @bind-Value="Model.EnTitle" class="form-control" />
+        <ValidationMessage For="()=>Model.EnTitle" class="text-danger" />
+
+    </div>
+    <div class="col-6">
+        <label class="form-label">Nội dung (Tiếng việt)</label>
+        <InputTextArea @bind-Value="Model.VnDescription" class="form-control" />
+        <ValidationMessage For="()=>Model.VnDescription" class="text-danger" />
+
+    </div>
+    <div class="col-6">
+        <label class="form-label">Nội dung (English)</label>
+        <InputTextArea @bind-Value="Model.EnDescription" class="form-control" />
+        <ValidationMessage For="()=>Model.EnDescription" class="text-danger" />
+
+    </div>
+      <div class="col-12">
+        <label class="form-label">Link</label>
+        <InputText @bind-Value="Model.Link" class="form-control" />
+        <ValidationMessage For="()=>Model.Link" class="text-danger" />
+
+    </div>
+    <div class="col-12">
+        <label class="form-label">Thứ tự</label>
+        <InputNumber @bind-Value="Model.Order" class="form-control" />
+        <ValidationMessage For="()=>Model.Order" class="text-danger" />
+
+    </div>
+    <div class="col mt-2 align-self-end">
+        <Button Color="ButtonColor.Secondary" @onclick="async ()=>{await ParentModal.HideAsync();}">Đóng</Button>
+        <Button Color="ButtonColor.Primary" Type="ButtonType.Submit">Lưu</Button>
+    </div>
+</EditForm>
+
+
+@code {
+    private string ErrorMessage = "";
+    private string avatarPreview = "/images/blank-image.jpg";
+    private InputFile avatarPickerInput {get;set;} = null!;
+    private const string ResearchStudiesForm = "research-study-form";
+    [SupplyParameterFromForm(FormName = ResearchStudiesForm)]
+    private CreateResearchStudyModel Model { get; set; } = new();
+    [Parameter]
+    public Modal ParentModal { get; set; } = default!;
+    [Parameter]
+    public ResearchStudy? ResearchStudy { get; set; }
+    private async Task CreateOrUpdateAsync()
+    {
+        ErrorMessage = "";
+        if (ResearchStudy is not null)
+        {
+
+            ResearchStudy.VnTitle = Model.VnTitle;
+            ResearchStudy.EnTitle = Model.EnTitle;
+            ResearchStudy.VnDescription = Model.VnDescription;
+            ResearchStudy.VnDescription = Model.EnDescription;
+            ResearchStudy.Order = Model.Order;
+            var oldImagePath = ResearchStudy.Image;
+            if(Model.Image is not null){
+                var saveFolder = Path.Combine(_env.ContentRootPath,"wwwroot","uploads","researchstudy");
+                var fileName = Path.GetFileNameWithoutExtension(Model.Image.Name)+"_"+Path.GetRandomFileName()+Path.GetExtension(Model.Image.Name);
+                var filePath = Path.Combine(saveFolder,fileName);
+                Directory.CreateDirectory(saveFolder);
+                await using FileStream fs = new(filePath, FileMode.Create);
+                await  Model.Image.OpenReadStream(maxAllowedSize: 1024 * 5000).CopyToAsync(fs); 
+                ResearchStudy.Image = Path.Combine("uploads","researchstudy",fileName);
+            }
+
+            await _researchStudyRepository.Update(ResearchStudy);
+            if(oldImagePath is not null){
+                var saveFolder = Path.Combine(_env.ContentRootPath,"wwwroot");
+                var filePath = Path.Combine(saveFolder, oldImagePath);
+                if(File.Exists(filePath)){
+                    File.Delete(filePath);
+                }
+            }
+            await ParentModal.HideAsync();
+            _toastService.Notify(new(ToastType.Success, $"Cập nhật ResearchStudy [{ResearchStudy.VnTitle}] thành công."));
+
+        }
+        else
+        {
+            string? imagePath =null;
+            if(Model.Image is not null){
+                var saveFolder = Path.Combine(_env.ContentRootPath,"wwwroot","uploads","researchstudy");
+                var fileName = Path.GetFileNameWithoutExtension(Model.Image.Name)+"_"+Path.GetRandomFileName()+Path.GetExtension(Model.Image.Name);
+                var filePath = Path.Combine(saveFolder, fileName);
+                Directory.CreateDirectory(saveFolder);
+                await using FileStream fs = new(filePath, FileMode.Create);
+                await  Model.Image.OpenReadStream(maxAllowedSize: 1024 * 5000).CopyToAsync(fs); 
+                imagePath =  Path.Combine("uploads","researchstudy", fileName);
+            }
+            var researchStudy = new ResearchStudy
+                {
+                    Id = Guid.NewGuid(),
+                    VnTitle = Model.VnTitle,
+                    EnTitle = Model.EnTitle,
+                    VnDescription = Model.VnDescription,
+                    EnDescription = Model.EnDescription,
+                    Link = Model.Link,
+                    Order = Model.Order,
+                    Image = imagePath
+                };
+            await _researchStudyRepository.Add(researchStudy);
+            await ParentModal.HideAsync();
+            _toastService.Notify(new(ToastType.Success, $"Tạo mới ResearchStudy [{researchStudy.VnTitle}] thành công."));
+        }
+    }
+
+
+  private async Task OnImageClick(){
+        await js.InvokeAsync<object>("HTMLElement.prototype.click.call", avatarPickerInput.Element);
+
+    }
+
+    private async Task UploadFile(InputFileChangeEventArgs e)
+    {
+        Model.Image = e.File;
+
+        var resizedFile = await e.File.RequestImageFileAsync(e.File.ContentType,300,150);
+        var buf  = new byte[resizedFile.Size];
+
+        using(var stream = resizedFile.OpenReadStream()){
+            await stream.ReadAsync(buf);
+        }
+
+        avatarPreview = "data:image/png;base64,"+ Convert.ToBase64String(buf);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.CompletedTask;
+
+        if (ResearchStudy is not null)
+        {
+
+            Model = new CreateResearchStudyModel
+
+                {
+                    VnTitle = ResearchStudy.VnTitle,
+                    EnDescription = ResearchStudy.EnDescription,
+                    VnDescription = ResearchStudy.VnDescription,
+                    EnTitle = ResearchStudy.VnTitle,
+                    Order = ResearchStudy.Order,
+                    Link = ResearchStudy.Link
+                };
+                            avatarPreview = ResearchStudy.Image is not null ? "\\"+ResearchStudy.Image : "/images/blank-image.jpg";
+
+        }
+        else
+        {
+            Model = new();
+        }
+    }
+
+
+    class CreateResearchStudyModel
+    {
+        [Required(ErrorMessage = "Tên tiếng việt đang để trống")]
+        public string VnTitle { get; set; } = null!;
+        [Required(ErrorMessage = "Tên tiếng anh đang để trống")]
+        public string EnTitle { get; set; } = null!;
+        [Required(ErrorMessage = "Nội dung tiếng việt đang để trống")]
+        public string VnDescription { get; set; } = null!;
+        [Required(ErrorMessage = "Nội dung tiếng anh đang để trống")]
+        public string EnDescription { get; set; } = null!;
+        public string? Link {get;set;}
+        [Required(ErrorMessage = "thứ tự đang để trống")]
+        public int Order { get; set; }
+        public IBrowserFile? Image { get; set; }
+
+    }
+}
