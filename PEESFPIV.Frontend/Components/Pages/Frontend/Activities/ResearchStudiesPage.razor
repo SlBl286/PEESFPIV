@@ -1,0 +1,102 @@
+@page "/ResearchStudy"
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
+@using PEESFPIV.Frontend.Models;
+@inject IResearchStudyRepository _researchStudyRepository;
+<PageTitle>Research & Study</PageTitle>
+
+<div class="nk-content bg-gray-img research-studies">
+    <div class="container wide-xl">
+        <div class="nk-content-inner">
+            <div class="nk-content-body pt-0">
+                <div class="nk-content-wrap " data-aos="fade-up">
+                    <div class="nk-block-head nk-block-head-sm">
+                        <div class="nk-block-between">
+                            <div class="div-title">
+                                <div class="div-title-line"></div>
+                                <h3 class="title-big">Research and Studies</h3>
+                                <div class="div-title-line"></div>
+                            </div><!-- .nk-block-head-content -->
+                        </div><!-- .nk-block-between -->
+                    </div><!-- .nk-block-head -->
+                </div>
+                <div class="row-ct justify-content-between div-tab-list" data-aos="fade-up">
+                    <a class="div-tab-block block-green">
+                        <div class="div-research-content">
+                            <span>Research on assessing the current status and proposing solutions to
+                                promote energy efficiency in the supporting and food processing
+                                industries</span>
+                        </div>
+                    </a>
+                    <a class="div-tab-block block-yellow">
+                        <div class="div-research-content">
+                            <span>Research on current status of ESCOS in VIETNAM and potential
+                                implementation in the supporting and food processing industry</span>
+                        </div>
+                    </a>
+                    <a class="div-tab-block block-gray">
+                        <div class="div-research-content">
+                            <span>Policy studies</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="row-ct div-research-list pt-5 mt-5 mb-5 pb-5" data-aos="fade-up">
+                    <div class="w-100 row-ct">
+                        @foreach (var rs in ResearchStudies)
+                        {
+                            <div class="div-research-item">
+                                <div class="div-research-image">
+                                    <Image src="@rs.Image" style="object-fit: fill;" width="226px"/>
+                                </div>
+                                <div class="research-content">
+                                    <div class="content-title">
+                                        <h5 class="">@rs.EnTitle</h5>
+                                        <span class="research-des">@rs.EnDescription</span>
+                                    </div>
+                                    <div id="accordion" class="accordion btn-show-more">
+                                        <div class="accordion-item">
+                                            <div class="accordion-body collapse" id="accordion-item-1"
+                                                data-parent="#accordion">
+                                                <div class="accordion-inner">
+                                                    <span class="research-des">@rs.EnDescription
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <a href="#" class="accordion-head" data-toggle="collapse"
+                                                data-target="#accordion-item-1">
+                                                <h6 class="title">Show more</h6>
+                                                <span class="accordion-icon"></span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="col-12 row div-paging justify-center pt-5">
+                    <nav>
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1"
+                                    aria-disabled="true">Prev</a></li>
+                            <li class="page-item"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item active"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code
+{
+    List<ResearchStudy> ResearchStudies = new List<ResearchStudy>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        ResearchStudies = await _researchStudyRepository.GetList();
+    }
+}

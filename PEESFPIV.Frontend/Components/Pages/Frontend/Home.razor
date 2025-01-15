@@ -1,15 +1,220 @@
 ﻿@page "/"
 @using PEESFPIV.Frontend.Components.Layout;
+@using PEESFPIV.Frontend.Databases.Repositories.Interfaces
 @using PEESFPIV.Frontend.Models;
 @layout MainLayout
 
+@inject IObjectiveRepository _objectiveRepository
+@inject IKeyFocusRepository _keyfocusRepository
+@inject IOutcomeRepository _outcomeRepository
+@inject IPartnerRepository _partnerRepository
 <PageTitle>Home</PageTitle>
 
-<div class="flex flex-col gap-y-4 w-full">
+<div class="banner-header">
+    <div class="slider-banner owl-carousel owl-theme">
+        <!-- owl-carousel owl-theme -->
+        <!-- <div class="slider-banner-item" id="banner1" style="width:100vw;height: 100svh;"></div> -->
+        <div class="slider-banner-item" style="width:100vw;height: 100svh;background-image: url('images/banner1.png');">
+        </div>
+        <div class="slider-banner-item" style="width:100vw;height: 100svh;background-image: url('images/banner2.jpg');">
+        </div>
+        <div class="slider-banner-item" style="width:100vw;height: 100svh;background-image: url('images/banner3.jpg">
+        </div>
+    </div>
+</div>
+<div class="nk-content bg-gray-img objectives">
+    <div class="container wide-xl">
+        <div class="nk-content-inner">
+            <div class="nk-content-body pt-0">
+                <div class="nk-content-wrap " data-aos="fade-up">
+                    <div class="nk-block-head nk-block-head-sm">
+                        <div class="nk-block-between">
+                            <div class="div-title">
+                                <div class="div-title-line"></div>
+                                <h3 class="title-big">Objectives</h3>
+                                <div class="div-title-line"></div>
+                            </div><!-- .nk-block-head-content -->
+                        </div><!-- .nk-block-between -->
+                    </div><!-- .nk-block-head -->
+                </div>
+                <div class="row g-gs justify-content-around">
+                    @foreach (var obj in Objectives.OrderBy(o => o.Order))
+                    {
+                        <div class="div-objective-block col-12 col-md-6" data-aos="fade-up">
+                            <div class="div-objective-gray">
+                                <div class="div-objective-number">@(obj.Order > 10 ? obj.Order : "0" + obj.Order) .</div>
+                                <div class="div-objective-text">@obj.EnDescription</div>
+                                <div class="div-objective-line"></div>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="nk-content " data-aos="fade-up">
+    <div class="container wide-xl">
+        <div class="nk-content-inner">
+            <div class="nk-content-body pt-0">
+                <div class="nk-content-wrap ">
+                    <div class="nk-block-head nk-block-head-sm">
+                        <div class="nk-block-between">
+                            <div class="div-title">
+                                <div class="div-title-line"></div>
+                                <h3 class="title-big">Project Key focus areas</h3>
+                                <div class="div-title-line"></div>
+                            </div><!-- .nk-block-head-content -->
+                        </div><!-- .nk-block-between -->
+                    </div><!-- .nk-block-head -->
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-ct div-project-key">
+    @foreach(var kf in KeyFocuses){
+        <div data-aos="fade-up" class="div-item"
+        style="background: url('@kf.Image.Replace("\\","/")')lightgray 50%/cover no-repeat;">
+        <div class="div-project-key-banner">
+            <div class="div-text">
+                <span class="">@kf.VnDescription</span>
+            </div>
+            <div class="div-project-line">
+                <svg xmlns="http://www.w3.org/2000/svg" width="89" height="8" viewBox="0 0 89 8" fill="none">
+                    <path
+                        d="M88.1314 4.35355C88.3267 4.15829 88.3267 3.84171 88.1314 3.64645L84.9495 0.464466C84.7542 0.269204 84.4376 0.269204 84.2424 0.464466C84.0471 0.659728 84.0471 0.976311 84.2424 1.17157L87.0708 4L84.2424 6.82843C84.0471 7.02369 84.0471 7.34027 84.2424 7.53553C84.4376 7.7308 84.7542 7.7308 84.9495 7.53553L88.1314 4.35355ZM34.9434 4.5H87.7779V3.5H34.9434V4.5Z"
+                        fill="white" />
+                    <path d="M0.755859 4L28.7271 4" stroke="white" />
+                </svg>
+            </div>
+        </div>
+    </div>
+    }
+   
+
 
 </div>
+<div class="nk-content " data-aos="fade-up">
+    <div class="container wide-xl">
+        <div class="nk-content-inner">
+            <div class="nk-content-body pt-0">
+                <div class="nk-content-wrap ">
+                    <div class="nk-block-head nk-block-head-sm">
+                        <div class="nk-block-between">
+                            <div class="div-title">
+                                <div class="div-title-line"></div>
+                                <h3 class="title-big">Expected outcomes</h3>
+                                <div class="div-title-line"></div>
+                            </div><!-- .nk-block-head-content -->
+                        </div><!-- .nk-block-between -->
+                    </div><!-- .nk-block-head -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row-ct div-outcomes">
+    @foreach(var oc in Outcomes){
+         <div class="div-outcomes-item" data-aos="fade-up">
+        <div class="img-outcomes">
+            <img src="@oc.Image" alt="">
+        </div>
+        <div class="div-outcomes-content">
+            <span class="title-outcomes">@oc.EnTitle</span>
+            <span class="des-outcomes">@oc.EnDescription</span>
+        </div>
+    </div>
+    }
+    <!-- content @e -->
+</div>
+<div class="nk-content pb-5 mb-5">
+    <div class="container wide-xl">
+        <div class="nk-content-inner">
+            <div class="nk-content-body pt-0">
+                <div class="nk-content-wrap ">
+                    <div class="nk-block-head nk-block-head-sm" data-aos="fade-up">
+                        <div class="nk-block-between">
+                            <div class="div-title">
+                                <div class="div-title-line"></div>
+                                <h3 class="title-big">Key Partners</h3>
+                                <div class="div-title-line"></div>
+                            </div><!-- .nk-block-head-content -->
+                        </div><!-- .nk-block-between -->
+                    </div><!-- .nk-block-head -->
+                    <div class="row-ct div-key-partners">
+                        <div class="key-partner-spon" data-aos="fade-up">
+                            <div class="title-key-partner mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="54" height="21" viewBox="0 0 54 21"
+                                    fill="none">
+                                    <path d="M48.5 0H54L46.5 10.5L54 21H48.5L41 10.5L48.5 0Z" fill="#0D5A00" />
+                                    <path d="M28 0H33.5L26 10.5L33.5 21H28L20.5 10.5L28 0Z" fill="#0D5A00" />
+                                    <path d="M7.5 0H13L5.5 10.5L13 21H7.5L0 10.5L7.5 0Z" fill="#0D5A00" />
+                                </svg>
+                                <span>Sponsors</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="54" height="21" viewBox="0 0 54 21"
+                                    fill="none">
+                                    <path d="M5.5 0H0L7.5 10.5L0 21H5.5L13 10.5L5.5 0Z" fill="#0D5A00" />
+                                    <path d="M26 0H20.5L28 10.5L20.5 21H26L33.5 10.5L26 0Z" fill="#0D5A00" />
+                                    <path d="M46.5 0H41L48.5 10.5L41 21H46.5L54 10.5L46.5 0Z" fill="#0D5A00" />
+                                </svg>
+                            </div>
+                            <div class="block-logo-spon">
+                                @foreach(var p in Partners){
+                                 <a href="#" class="logo-spon">
+                                    <img src="@p.Image" alt="@p.EnName">
+                                </a>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-12 pl-0 pr-0 row-ct justify-content-between" data-aos="fade-up">
+                            <a href="#" class="col-md-49 col-12 key50 mt-3 logo-key-50">
+                                <span>Implementing <br> Organization</span>
+                                <div class="logo-50">
+                                    <img src="images/logo/vcci.jpg" alt="">
+                                </div>
+                            </a>
+                            <a href="#" class="col-md-49 col-12 key50 mt-3 logo-key-50">
+                                <span>Co-partner</span>
+                                <div class="logo-50">
+                                    <img src="images/logo/yuko.jpg" alt="">
+                                </div>
+                            </a>
+                        </div>
+                        <!-- content @e -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div
+<!-- wrap @e -->
 
 @code {
+    private List<Objective> Objectives = new List<Objective>();
+    private List<KeyFocus> KeyFocuses = new List<KeyFocus>();
+    private List<Outcome> Outcomes = new List<Outcome>();
+    private List<Partner> Partners = new List<Partner>();
 
+    protected override async Task OnInitializedAsync()
+    {
+        Objectives = await _objectiveRepository.GetList();
+        KeyFocuses = await _keyfocusRepository.GetList();
+        Outcomes = await _outcomeRepository.GetList();
+        Partners = await _partnerRepository.GetList();
+    }
 }
-
+<script>
+    $(document).ready(function () {
+        $(".slider-banner").owlCarousel({
+            items: 1,
+            loop: true,
+            // autoplay: true,
+            // autoplayTimeout: 6000,
+            // autoplayHoverPause: false,
+            // smartSpeed: 1500,
+        });
+    });
+</script>
